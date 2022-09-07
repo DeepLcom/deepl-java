@@ -1,0 +1,296 @@
+// Copyright 2022 DeepL SE (https://www.deepl.com)
+// Use of this source code is governed by an MIT
+// license that can be found in the LICENSE file.
+package com.deepl.api;
+
+import java.util.*;
+import java.util.function.Consumer;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+
+public class TranslateTextTest extends TestBase {
+
+  @Test
+  void testSingleText() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    TextResult result = translator.translateText(exampleText.get("en"), null, LanguageCode.German);
+    Assertions.assertEquals(exampleText.get("de"), result.getText());
+    Assertions.assertEquals("en", result.getDetectedSourceLanguage());
+  }
+
+  @Test
+  void testTextArray() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    List<String> texts = new ArrayList<>();
+    texts.add(exampleText.get("fr"));
+    texts.add(exampleText.get("en"));
+    List<TextResult> result = translator.translateText(texts, null, LanguageCode.German);
+    Assertions.assertEquals(exampleText.get("de"), result.get(0).getText());
+    Assertions.assertEquals(exampleText.get("de"), result.get(1).getText());
+  }
+
+  @Test
+  void testSourceLang() throws DeepLException, InterruptedException {
+    Consumer<TextResult> checkResult =
+        (result) -> {
+          Assertions.assertEquals(exampleText.get("de"), result.getText());
+          Assertions.assertEquals("en", result.getDetectedSourceLanguage());
+        };
+
+    Translator translator = createTranslator();
+    checkResult.accept(translator.translateText(exampleText.get("en"), null, "DE"));
+    checkResult.accept(translator.translateText(exampleText.get("en"), "En", "DE"));
+    checkResult.accept(translator.translateText(exampleText.get("en"), "en", "DE"));
+
+    List<Language> sourceLanguages = translator.getSourceLanguages();
+    Language sourceLanguageEn =
+        sourceLanguages.stream()
+            .filter((language -> Objects.equals(language.getCode(), "en")))
+            .findFirst()
+            .orElse(null);
+    Language sourceLanguageDe =
+        sourceLanguages.stream()
+            .filter((language -> Objects.equals(language.getCode(), "de")))
+            .findFirst()
+            .orElse(null);
+    Assertions.assertNotNull(sourceLanguageEn);
+    Assertions.assertNotNull(sourceLanguageDe);
+    checkResult.accept(
+        translator.translateText(exampleText.get("en"), sourceLanguageEn, sourceLanguageDe));
+  }
+
+  @Test
+  void testTargetLang() throws DeepLException, InterruptedException {
+    Consumer<TextResult> checkResult =
+        (result) -> {
+          Assertions.assertEquals(exampleText.get("de"), result.getText());
+          Assertions.assertEquals("en", result.getDetectedSourceLanguage());
+        };
+
+    Translator translator = createTranslator();
+    checkResult.accept(translator.translateText(exampleText.get("en"), null, "De"));
+    checkResult.accept(translator.translateText(exampleText.get("en"), null, "de"));
+    checkResult.accept(translator.translateText(exampleText.get("en"), null, "DE"));
+
+    List<Language> targetLanguages = translator.getTargetLanguages();
+    Language targetLanguageDe =
+        targetLanguages.stream()
+            .filter((language -> Objects.equals(language.getCode(), "de")))
+            .findFirst()
+            .orElse(null);
+    Assertions.assertNotNull(targetLanguageDe);
+    checkResult.accept(translator.translateText(exampleText.get("en"), null, targetLanguageDe));
+
+    // Check that en and pt as target languages throw an exception
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          translator.translateText(exampleText.get("de"), null, "en");
+        });
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          translator.translateText(exampleText.get("de"), null, "pt");
+        });
+  }
+
+  @Test
+  void testInvalidLanguage() {
+    Translator translator = createTranslator();
+    DeepLException thrown;
+    thrown =
+        Assertions.assertThrows(
+            DeepLException.class,
+            () -> {
+              translator.translateText(exampleText.get("en"), null, "XX");
+            });
+    Assertions.assertTrue(thrown.getMessage().contains("target_lang"));
+
+    thrown =
+        Assertions.assertThrows(
+            DeepLException.class,
+            () -> {
+              translator.translateText(exampleText.get("en"), "XX", "de");
+            });
+    Assertions.assertTrue(thrown.getMessage().contains("source_lang"));
+  }
+
+  @Test
+  void testTranslateWithRetries() throws DeepLException, InterruptedException {
+    Assumptions.assumeTrue(isMockServer);
+    Translator translator = createTranslator(new SessionOptions().setRespondWith429(2));
+
+    long timeBefore = new Date().getTime();
+    List<String> texts = new ArrayList<>();
+    texts.add(exampleText.get("en"));
+    texts.add(exampleText.get("ja"));
+    List<TextResult> result = translator.translateText(texts, null, "de");
+    long timeAfter = new Date().getTime();
+
+    Assertions.assertEquals(2, result.size());
+    Assertions.assertEquals(exampleText.get("de"), result.get(0).getText());
+    Assertions.assertEquals("en", result.get(0).getDetectedSourceLanguage());
+    Assertions.assertEquals(exampleText.get("de"), result.get(1).getText());
+    Assertions.assertEquals("ja", result.get(1).getDetectedSourceLanguage());
+    Assertions.assertTrue(timeAfter - timeBefore > 1000);
+  }
+
+  @Test
+  void testFormality() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    TextResult result;
+
+    result =
+        translator.translateText(
+            "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.Less));
+    if (!isMockServer) {
+      Assertions.assertEquals("Wie geht es dir?", result.getText());
+    }
+
+    result =
+        translator.translateText(
+            "How are you?",
+            null,
+            "de",
+            new TextTranslationOptions().setFormality(Formality.Default));
+    if (!isMockServer) {
+      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+    }
+
+    result =
+        translator.translateText(
+            "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.More));
+    if (!isMockServer) {
+      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+    }
+  }
+
+  @Test
+  void testSplitSentences() throws DeepLException, InterruptedException {
+    Assumptions.assumeTrue(isMockServer);
+
+    Translator translator = createTranslator();
+    String text =
+        "If the implementation is hard to explain, it's a bad idea.\nIf the implementation is easy to explain, it may be a good idea.";
+
+    translator.translateText(
+        text,
+        null,
+        "de",
+        new TextTranslationOptions().setSentenceSplittingMode(SentenceSplittingMode.Off));
+    translator.translateText(
+        text,
+        null,
+        "de",
+        new TextTranslationOptions().setSentenceSplittingMode(SentenceSplittingMode.All));
+    translator.translateText(
+        text,
+        null,
+        "de",
+        new TextTranslationOptions().setSentenceSplittingMode(SentenceSplittingMode.NoNewlines));
+  }
+
+  @Test
+  void testPreserveFormatting() throws DeepLException, InterruptedException {
+    Assumptions.assumeTrue(isMockServer);
+
+    Translator translator = createTranslator();
+    translator.translateText(
+        exampleText.get("en"),
+        null,
+        "de",
+        new TextTranslationOptions().setPreserveFormatting(true));
+    translator.translateText(
+        exampleText.get("en"),
+        null,
+        "de",
+        new TextTranslationOptions().setPreserveFormatting(false));
+  }
+
+  @Test
+  void testTagHandlingXML() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String text =
+        "<document><meta><title>A document's title</title></meta>"
+            + "<content><par>"
+            + "<span>This is a sentence split</span>"
+            + "<span>across two &lt;span&gt; tags that should be treated as one."
+            + "</span>"
+            + "</par>"
+            + "<par>Here is a sentence. Followed by a second one.</par>"
+            + "<raw>This sentence will not be translated.</raw>"
+            + "</content>"
+            + "</document>";
+    TextResult result =
+        translator.translateText(
+            text,
+            null,
+            "de",
+            new TextTranslationOptions()
+                .setTagHandling("xml")
+                .setOutlineDetection(false)
+                .setNonSplittingTags(Arrays.asList("span"))
+                .setSplittingTags(Arrays.asList("title", "par"))
+                .setIgnoreTags(Arrays.asList("raw")));
+    if (!isMockServer) {
+      Assertions.assertTrue(
+          result.getText().contains("<raw>This sentence will not be translated.</raw>"));
+      Assertions.assertTrue(result.getText().matches(".*<title>.*Der Titel.*</title>.*"));
+    }
+  }
+
+  @Test
+  void testTagHandlingHTML() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String text =
+        "<!DOCTYPE html>"
+            + "<html>"
+            + "<body>"
+            + "<h1>My First Heading</h1>"
+            + "<p translate=\"no\">My first paragraph.</p>"
+            + "</body>"
+            + "</html>";
+
+    TextResult result =
+        translator.translateText(
+            text, null, "de", new TextTranslationOptions().setTagHandling("html"));
+    if (!isMockServer) {
+      Assertions.assertTrue(result.getText().contains("<h1>Meine erste Überschrift</h1>"));
+      Assertions.assertTrue(
+          result.getText().contains("<p translate=\"no\">My first paragraph.</p>"));
+    }
+  }
+
+  @Test
+  void testEmptyText() {
+    Translator translator = createTranslator();
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          translator.translateText("", null, "de");
+        });
+  }
+
+  @Test
+  void testMixedCaseLanguages() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    TextResult result;
+
+    result = translator.translateText(exampleText.get("de"), null, "en-us");
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals("de", result.getDetectedSourceLanguage());
+
+    result = translator.translateText(exampleText.get("de"), null, "EN-us");
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals("de", result.getDetectedSourceLanguage());
+
+    result = translator.translateText(exampleText.get("de"), "de", "EN-US");
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals("de", result.getDetectedSourceLanguage());
+
+    result = translator.translateText(exampleText.get("de"), "dE", "EN-US");
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals("de", result.getDetectedSourceLanguage());
+  }
+}
