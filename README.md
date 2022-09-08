@@ -1,5 +1,6 @@
 # DeepL Java Library
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.deepl.api/deepl-java.svg)](https://mvnrepository.com/artifact/com.deepl.api/deepl-java)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://github.com/DeepLcom/deepl-java/blob/main/LICENSE)
 
 The [DeepL API][api-docs] is a language translation API that allows other
