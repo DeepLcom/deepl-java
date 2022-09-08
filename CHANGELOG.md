@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 * Fixed examples in readme.
+* `Usage.Detail` `count` and `detail` properties type changed from `int` to `long`.
 ### Security
 
 

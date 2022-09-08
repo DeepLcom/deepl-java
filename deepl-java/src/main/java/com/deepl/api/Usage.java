@@ -35,21 +35,21 @@ public class Usage {
 
   /** Stores the amount used and maximum amount for one usage type. */
   public static class Detail {
-    private final int count;
-    private final int limit;
+    private final long count;
+    private final long limit;
 
-    public Detail(int count, int limit) {
+    public Detail(long count, long limit) {
       this.count = count;
       this.limit = limit;
     }
 
     /** @return The currently used number of items for this usage type. */
-    public int getCount() {
+    public long getCount() {
       return count;
     }
 
     /** @return The maximum permitted number of items for this usage type. */
-    public int getLimit() {
+    public long getLimit() {
       return limit;
     }
 
