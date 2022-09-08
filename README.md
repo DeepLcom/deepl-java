@@ -56,7 +56,7 @@ Be careful not to expose your key, for example when sharing source code.
 import com.deepl.api.*;
 
 class Example {
-    public String basicTranslationExample() {
+    public String basicTranslationExample() throws Exception {
         String authKey = "f63c02c5-f056-...";  // Replace with your key
         Translator translator = new Translator(authKey);
         TextResult result =
@@ -98,7 +98,7 @@ detected source language code.
 
 ```java
 class Example {
-    public void textTranslationExamples() {
+    public void textTranslationExamples() throws Exception {
         // Translate text into a target language, in this case, French:
         TextResult result =
                 translator.translateText("Hello, world!", null, "fr");
@@ -184,7 +184,7 @@ There are additional optional arguments to control translation, see
 
 ```java
 class Example {
-    public void documentTranslationExamples() {
+    public void documentTranslationExamples() throws Exception {
         // Translate a formal document from English to German
         File inputFile = new File("/path/to/Instruction Manual.docx");
         File outputFile = new File("/path/to/Bedienungsanleitung.docx");
@@ -242,7 +242,7 @@ the `any_limit_reached` property to check all usage subtypes.
 
 ```java
 class Example {
-    public void getUsageExample() {
+    public void getUsageExample() throws Exception {
         Usage usage = translator.getUsage();
         if (usage.anyLimitReached()) {
             System.out.println("Translation limit reached.");
@@ -274,7 +274,7 @@ optional `formality` parameter.
 
 ```java
 class Example {
-    public void getLanguagesExample() {
+  public void getLanguagesExample() throws Exception {
         Language[] sourceLanguages = translator.getSourceLanguages();
         Language[] targetLanguages = translator.getTargetLanguages();
         System.out.println("Source languages:");
@@ -315,7 +315,7 @@ for example:
 
 ```java
 class Example {
-    public void configurationExample() {
+    public void configurationExample() throws Exception {
         TranslatorOptions options =
                 new TranslatorOptions().setMaxRetries(1).setTimeout(Duration.ofSeconds(
                         1));
