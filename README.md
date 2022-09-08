@@ -196,11 +196,11 @@ class Example {
             // document_handle property contains the document handle that may be used to
             // later retrieve the document from the server, or contact DeepL support.
             DocumentHandle handle = exception.getHandle();
-            System.out.write(String.format(
+            System.out.printf(
                     "Error after uploading %s, document handle: id: %s key: %s",
                     exception.getMessage(),
                     handle.getDocumentId(),
-                    handle.getDocumentKey()));
+                    handle.getDocumentKey());
         }
     }
 }
@@ -247,15 +247,15 @@ class Example {
         if (usage.anyLimitReached()) {
             System.out.println("Translation limit reached.");
         }
-        if (usage.character != null) {
-            System.out.println(String.format("Character usage: %d of %d",
-                                             usage.character.count,
-                                             usage.character.count));
+        if (usage.getCharacter() != null) {
+            System.out.printf("Character usage: %d of %d%n",
+                              usage.getCharacter().getCount(),
+                              usage.getCharacter().getLimit());
         }
-        if (usage.document != null) {
-            System.out.println(String.format("Document usage: %d of %d",
-                                             usage.document.count,
-                                             usage.document.limit));
+        if (usage.getDocument() != null) {
+            System.out.printf("Document usage: %d of %d%n",
+                              usage.getDocument().getCount(),
+                              usage.getDocument().getLimit());
         }
     }
 }
@@ -274,29 +274,28 @@ optional `formality` parameter.
 
 ```java
 class Example {
-  public void getLanguagesExample() throws Exception {
-        Language[] sourceLanguages = translator.getSourceLanguages();
-        Language[] targetLanguages = translator.getTargetLanguages();
+    public void getLanguagesExample() throws Exception {
+        List<Language> sourceLanguages = translator.getSourceLanguages();
+        List<Language> targetLanguages = translator.getTargetLanguages();
         System.out.println("Source languages:");
         for (Language language : sourceLanguages) {
-            System.out.println(String.format("%s (%s)",
-                                             language.name,
-                                             language.code)); // Example: "German (de)"
-
+          System.out.printf("%s (%s)%n",
+                            language.getName(),
+                            language.getCode()); // Example: "German (de)"
         }
 
         System.out.println("Target languages:");
         for (Language language : targetLanguages) {
-            if (language.supportsFormality) {
-                System.out.println(String.format("%s (%s) supports formality",
-                                                 language.name,
-                                                 language.code)); // Example: "Italian (it) supports formality"
+            if (language.getSupportsFormality()) {
+                System.out.printf("%s (%s) supports formality%n",
+                                  language.getName(),
+                                  language.getCode()); // Example: "Italian (it) supports formality"
 
-            } else {
-                System.out.println(String.format("%s (%s)",
-                                                 language.name,
-                                                 language.code)); // Example: "Lithuanian (lt)"
-            }
+          } else {
+                System.out.printf("%s (%s)%n",
+                                  language.getName(),
+                                  language.getCode()); // Example: "Lithuanian (lt)"
+          }
         }
     }
 }
