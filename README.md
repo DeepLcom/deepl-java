@@ -91,7 +91,7 @@ list of supported languages is in the [API documentation][api-docs-lang-list].
 There are additional optional arguments to control translation, see
 [Text translation options](#text-translation-options) below.
 
-`translateText()` returns a `TextResult`, or an array of `TextResult`s
+`translateText()` returns a `TextResult`, or a List of `TextResult`s
 corresponding to your input text(s). `TextResult` has two accessors: `getText()`
 returns the translated text, and `getDetectedSourceLanguage()` returns the
 detected source language code.
@@ -105,14 +105,14 @@ class Example {
         System.out.println(result.getText()); // "Bonjour, le monde !"
 
         // Translate multiple texts into British English
-        TextResult results =
-                translator.translateText(new String[]{"お元気ですか？", "¿Cómo estás"},
+        List<TextResult> results =
+                translator.translateText(List.of("お元気ですか？", "¿Cómo estás"),
                                          null,
                                          "en-GB");
-        System.out.println(results[0].getText()); // "How are you?"
-        System.out.println(results[0].getDetectedSourceLanguage()); // "ja" the language code for Japanese
-        System.out.println(results[1].getText()); // "How are you?"
-        System.out.println(results[1].getDetectedSourceLanguage()); // "es" the language code for Spanish
+        System.out.println(results.get(0).getText()); // "How are you?"
+        System.out.println(results.get(0).getDetectedSourceLanguage()); // "ja" the language code for Japanese
+        System.out.println(results.get(1).getText()); // "How are you?"
+        System.out.println(results.get(1).getDetectedSourceLanguage()); // "es" the language code for Spanish
 
         // Translate into German with less and more Formality:
         System.out.println(translator.translateText("How are you?",
