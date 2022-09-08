@@ -106,7 +106,7 @@ class Example {
 
         // Translate multiple texts into British English
         List<TextResult> results =
-                translator.translateText(List.of("お元気ですか？", "¿Cómo estás"),
+                translator.translateText(List.of("お元気ですか？", "¿Cómo estás?"),
                                          null,
                                          "en-GB");
         System.out.println(results.get(0).getText()); // "How are you?"
