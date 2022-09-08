@@ -67,6 +67,8 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifact(tasks["sourcesJar"])
+            artifact(tasks["javadocJar"])
             pom {
                 name.set("deepl-java")
                 description.set("DeepL API Java Client Library")
