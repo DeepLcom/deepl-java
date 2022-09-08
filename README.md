@@ -61,7 +61,7 @@ class Example {
         Translator translator = new Translator(authKey);
         TextResult result =
                 translator.translateText("Hello, world!", null, "fr");
-        return result.text; // "Bonjour, le monde !"
+        return result.getText(); // "Bonjour, le monde !"
     }
 }
 ```
@@ -92,9 +92,9 @@ There are additional optional arguments to control translation, see
 [Text translation options](#text-translation-options) below.
 
 `translateText()` returns a `TextResult`, or an array of `TextResult`s
-corresponding to your input text(s). `TextResult` has two properties: `text` is
-the translated text, and `detectedSourceLanguage` is the detected source
-language code.
+corresponding to your input text(s). `TextResult` has two accessors: `getText()`
+returns the translated text, and `getDetectedSourceLanguage()` returns the
+detected source language code.
 
 ```java
 class Example {
@@ -102,29 +102,29 @@ class Example {
         // Translate text into a target language, in this case, French:
         TextResult result =
                 translator.translateText("Hello, world!", null, "fr");
-        System.out.println(result.text); // "Bonjour, le monde !"
+        System.out.println(result.getText()); // "Bonjour, le monde !"
 
         // Translate multiple texts into British English
         TextResult results =
                 translator.translateText(new String[]{"お元気ですか？", "¿Cómo estás"},
                                          null,
                                          "en-GB");
-        System.out.println(results[0].text); // "How are you?"
-        System.out.println(results[0].detectedSourceLanguage); // "ja" the language code for Japanese
-        System.out.println(results[1].text); // "How are you?"
-        System.out.println(results[1].detectedSourceLanguage); // "es" the language code for Spanish
+        System.out.println(results[0].getText()); // "How are you?"
+        System.out.println(results[0].getDetectedSourceLanguage()); // "ja" the language code for Japanese
+        System.out.println(results[1].getText()); // "How are you?"
+        System.out.println(results[1].getDetectedSourceLanguage()); // "es" the language code for Spanish
 
         // Translate into German with less and more Formality:
         System.out.println(translator.translateText("How are you?",
                                                     null,
                                                     "de",
                                                     new TextTranslationOptions().setFormality(
-                                                            Formality.Less)).text);  // 'Wie geht es dir?'
+                                                            Formality.Less)).getText());  // 'Wie geht es dir?'
         System.out.println(translator.translateText("How are you?",
                                                     null,
                                                     "de",
                                                     new TextTranslationOptions().setFormality(
-                                                            Formality.More)).text);  // 'Wie geht es Ihnen?'
+                                                            Formality.More)).getText());  // 'Wie geht es Ihnen?'
     }
 }
 ```
