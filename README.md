@@ -29,7 +29,7 @@ Java 1.8 or later.
 Add this dependency to your project's build file:
 
 ```
-implementation "com.deepl.api:deepl-java:0.1.2"
+implementation "com.deepl.api:deepl-java:0.1.3"
 ```
 
 ### Maven users
@@ -40,7 +40,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>com.deepl.api</groupId>
   <artifactId>deepl-java</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
 </dependency>
 ```
 
