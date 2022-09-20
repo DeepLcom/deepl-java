@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.3] - 2022-09-09
 ### Fixed
 * Fixed examples in readme.
-* `Usage.Detail` `count` and `detail` properties type changed from `int` to `long`.
+* `Usage.Detail` `count` and `limit` properties type changed from `int` to `long`.
 
 
 ## [0.1.2] - 2022-09-08
