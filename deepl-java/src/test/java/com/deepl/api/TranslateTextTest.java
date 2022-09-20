@@ -298,19 +298,19 @@ public class TranslateTextTest extends TestBase {
     TextResult result;
 
     result = translator.translateText(exampleText.get("de"), null, "en-us");
-    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
     result = translator.translateText(exampleText.get("de"), null, "EN-us");
-    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
     result = translator.translateText(exampleText.get("de"), "de", "EN-US");
-    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
     result = translator.translateText(exampleText.get("de"), "dE", "EN-US");
-    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase());
+    Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
   }
 }

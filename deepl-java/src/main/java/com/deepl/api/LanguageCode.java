@@ -3,6 +3,8 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
+import java.util.*;
+
 /**
  * Language codes for the languages currently supported by DeepL translation. New languages may be
  * added in the future; to retrieve the currently supported languages use {@link
@@ -113,7 +115,7 @@ public class LanguageCode {
    */
   public static String removeRegionalVariant(String langCode) {
     String[] parts = langCode.split("-", 2);
-    return parts[0].toLowerCase();
+    return parts[0].toLowerCase(Locale.ENGLISH);
   }
 
   /**
@@ -126,9 +128,9 @@ public class LanguageCode {
   public static String standardize(String langCode) {
     String[] parts = langCode.split("-", 2);
     if (parts.length == 1) {
-      return parts[0].toLowerCase();
+      return parts[0].toLowerCase(Locale.ENGLISH);
     } else {
-      return parts[0].toLowerCase() + "-" + parts[1].toUpperCase();
+      return parts[0].toLowerCase(Locale.ENGLISH) + "-" + parts[1].toUpperCase(Locale.ENGLISH);
     }
   }
 }
