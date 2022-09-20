@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Changed
+* Requests resulting in `503 Service Unavailable` errors are now retried.
+  Attempting to download a document before translation is completed will now
+  wait and retry (up to 5 times by default), rather than throwing an exception.
 
 
 ## [0.1.3] - 2022-09-09

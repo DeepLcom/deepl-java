@@ -160,15 +160,6 @@ public class TranslateDocumentTest extends TestBase {
     Assertions.assertTrue(status.ok());
     Assertions.assertFalse(status.done());
 
-    // Downloading before document is ready will fail
-    Assertions.assertThrows(
-        DocumentNotReadyException.class,
-        () -> {
-          translator.translateDocumentDownload(handle, outputFile);
-        });
-    // Output file should not exist in case of failure
-    Assertions.assertFalse(outputFile.exists());
-
     // Test recreating a document handle from id & key
     String documentId = handle.getDocumentId();
     String documentKey = handle.getDocumentKey();

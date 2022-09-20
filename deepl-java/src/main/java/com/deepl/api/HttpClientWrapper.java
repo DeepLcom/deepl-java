@@ -87,8 +87,7 @@ class HttpClientWrapper {
             sendRequest(method, serverUrl + relativeUrl, backoffTimer.getTimeoutMillis(), content);
         if (backoffTimer.getNumRetries() >= this.maxRetries) {
           return response;
-        } else if (response.getCode() != 429
-            && (response.getCode() < 500 || response.getCode() == 503)) {
+        } else if (response.getCode() != 429 && response.getCode() < 500) {
           return response;
         }
         response.close();
