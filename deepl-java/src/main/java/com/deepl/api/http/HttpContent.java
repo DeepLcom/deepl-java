@@ -61,8 +61,8 @@ public class HttpContent {
   private static HttpContent buildMultipartFormDataContent(
       Iterable<KeyValuePair<String, Object>> params, String boundary) throws Exception {
     try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        PrintWriter writer =
-            new PrintWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+        OutputStreamWriter osw = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
+        PrintWriter writer = new PrintWriter(osw)) {
 
       if (params != null) {
         for (KeyValuePair<String, Object> entry : params) {

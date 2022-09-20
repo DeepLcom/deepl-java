@@ -13,10 +13,12 @@ public class StreamUtil {
     Charset charset = StandardCharsets.UTF_8;
     final char[] buffer = new char[DEFAULT_BUFFER_SIZE];
     final StringBuilder sb = new StringBuilder();
-    final Reader in = new BufferedReader(new InputStreamReader(inputStream, charset));
-    int charsRead;
-    while ((charsRead = in.read(buffer, 0, DEFAULT_BUFFER_SIZE)) > 0) {
-      sb.append(buffer, 0, charsRead);
+    try (InputStreamReader isr = new InputStreamReader(inputStream, charset);
+        final Reader in = new BufferedReader(isr)) {
+      int charsRead;
+      while ((charsRead = in.read(buffer, 0, DEFAULT_BUFFER_SIZE)) > 0) {
+        sb.append(buffer, 0, charsRead);
+      }
     }
     return sb.toString();
   }

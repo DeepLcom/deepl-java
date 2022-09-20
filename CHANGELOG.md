@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 * Use `Locale.ENGLISH` when changing string case.
   * Thanks to [seratch](https://github.com/seratch).
+* Avoid cases in `HttpContent` and `StreamUtils` where temporary objects might
+  not be closed.
+  * Thanks to [seratch](https://github.com/seratch).
 
 
 ## [0.1.3] - 2022-09-09
