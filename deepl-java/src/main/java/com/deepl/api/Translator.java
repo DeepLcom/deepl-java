@@ -684,6 +684,12 @@ public class Translator {
         case Less:
           params.add(new KeyValuePair<>("formality", "less"));
           break;
+        case PreferMore:
+          params.add(new KeyValuePair<>("formality", "prefer_more"));
+          break;
+        case PreferLess:
+          params.add(new KeyValuePair<>("formality", "prefer_less"));
+          break;
         default:
           break;
       }

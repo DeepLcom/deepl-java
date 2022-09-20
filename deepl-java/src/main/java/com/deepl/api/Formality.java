@@ -13,4 +13,13 @@ public enum Formality {
 
   /** Increased formality. */
   More,
+
+  /**
+   * Less formality, i.e. more informal, if available for the specified target language, otherwise
+   * default.
+   */
+  PreferLess,
+
+  /** Increased formality, if available for the specified target language, otherwise default. */
+  PreferMore,
 }

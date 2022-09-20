@@ -164,6 +164,26 @@ public class TranslateTextTest extends TestBase {
     if (!isMockServer) {
       Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
     }
+
+    result =
+        translator.translateText(
+            "How are you?",
+            null,
+            "de",
+            new TextTranslationOptions().setFormality(Formality.PreferLess));
+    if (!isMockServer) {
+      Assertions.assertEquals("Wie geht es dir?", result.getText());
+    }
+
+    result =
+        translator.translateText(
+            "How are you?",
+            null,
+            "de",
+            new TextTranslationOptions().setFormality(Formality.PreferMore));
+    if (!isMockServer) {
+      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+    }
   }
 
   @Test
