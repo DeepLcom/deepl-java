@@ -10,6 +10,7 @@ import com.deepl.api.http.HttpResponse;
 import com.deepl.api.http.HttpResponseStream;
 import com.deepl.api.parsing.Parser;
 import com.deepl.api.utils.*;
+import com.google.gson.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.util.*;
@@ -766,10 +767,16 @@ public class Translator {
       return;
     }
 
-    String messageSuffix = jsonParser.parseErrorMessage(response.getBody());
-    if (!messageSuffix.isEmpty()) {
-      messageSuffix = ", " + messageSuffix;
+    String messageSuffix = "";
+    String body = response.getBody();
+    if (body != null && !body.isEmpty()) {
+      try {
+        messageSuffix = ", error message: " + jsonParser.parseErrorMessage(body);
+      } catch (JsonSyntaxException ignored) {
+        messageSuffix = ", response: " + body;
+      }
     }
+
     switch (response.getCode()) {
       case HttpURLConnection.HTTP_BAD_REQUEST:
         throw new DeepLException("Bad request" + messageSuffix);
