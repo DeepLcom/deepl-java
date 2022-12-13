@@ -18,7 +18,9 @@ import org.jetbrains.annotations.*;
  */
 class HttpClientWrapper {
   private static final String CONTENT_TYPE = "Content-Type";
+  private static final String GET = "GET";
   private static final String POST = "POST";
+  private static final String DELETE = "DELETE";
   private final String serverUrl;
   private final Map<String, String> headers;
   private final Duration minTimeout;
@@ -36,6 +38,16 @@ class HttpClientWrapper {
     this.minTimeout = minTimeout;
     this.proxy = proxy;
     this.maxRetries = maxRetries;
+  }
+
+  public HttpResponse sendGetRequestWithBackoff(String relativeUrl)
+      throws InterruptedException, DeepLException {
+    return sendRequestWithBackoff(GET, relativeUrl, null).toStringResponse();
+  }
+
+  public HttpResponse sendDeleteRequestWithBackoff(String relativeUrl)
+      throws InterruptedException, DeepLException {
+    return sendRequestWithBackoff(DELETE, relativeUrl, null).toStringResponse();
   }
 
   public HttpResponse sendRequestWithBackoff(String relativeUrl)

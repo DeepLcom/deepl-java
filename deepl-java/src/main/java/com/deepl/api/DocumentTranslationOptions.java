@@ -39,6 +39,23 @@ public class DocumentTranslationOptions {
     return this;
   }
 
+  /**
+   * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
+   * no glossary is used.
+   */
+  public DocumentTranslationOptions setGlossary(GlossaryInfo glossary) {
+    return setGlossary(glossary.getGlossaryId());
+  }
+
+  /**
+   * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
+   * no glossary is used.
+   */
+  public DocumentTranslationOptions setGlossary(String glossaryId) {
+    this.glossaryId = glossaryId;
+    return this;
+  }
+
   /** Gets the current formality setting. */
   public Formality getFormality() {
     return formality;

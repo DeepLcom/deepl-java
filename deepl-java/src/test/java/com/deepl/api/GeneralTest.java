@@ -83,6 +83,17 @@ class GeneralTest extends TestBase {
   }
 
   @Test
+  void testGetGlossaryLanguages() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    List<GlossaryLanguagePair> glossaryLanguagePairs = translator.getGlossaryLanguages();
+    Assertions.assertTrue(glossaryLanguagePairs.size() > 0);
+    for (GlossaryLanguagePair glossaryLanguagePair : glossaryLanguagePairs) {
+      Assertions.assertTrue(glossaryLanguagePair.getSourceLanguage().length() > 0);
+      Assertions.assertTrue(glossaryLanguagePair.getTargetLanguage().length() > 0);
+    }
+  }
+
+  @Test
   void testAuthKeyIsFreeAccount() {
     Assertions.assertTrue(
         Translator.isFreeAccountAuthKey("b493b8ef-0176-215d-82fe-e28f182c9544:fx"));

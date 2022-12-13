@@ -10,8 +10,9 @@ developers: any translation product you can imagine can now be built on top of
 DeepL's best-in-class translation technology.
 
 The DeepL Java library offers a convenient way for applications written in Java
-to interact with the DeepL API. Currently, the library only supports text and
-document translation; we intend to add support for glossary management soon.
+to interact with the DeepL API. We intend to support all API functions with the
+library, though support for new features may be added to the library after
+they’re added to the API.
 
 ## Getting an authentication key
 
@@ -57,12 +58,14 @@ Be careful not to expose your key, for example when sharing source code.
 import com.deepl.api.*;
 
 class Example {
-    public String basicTranslationExample() throws Exception {
+    Translator translator;
+
+    public Example() throws Exception {
         String authKey = "f63c02c5-f056-...";  // Replace with your key
-        Translator translator = new Translator(authKey);
+        translator = new Translator(authKey);
         TextResult result =
                 translator.translateText("Hello, world!", null, "fr");
-        return result.getText(); // "Bonjour, le monde !"
+        System.out.println(result.getText()); // "Bonjour, le monde !"
     }
 }
 ```
@@ -98,7 +101,7 @@ returns the translated text, and `getDetectedSourceLanguage()` returns the
 detected source language code.
 
 ```java
-class Example {
+class Example {  // Continuing class Example from above
     public void textTranslationExamples() throws Exception {
         // Translate text into a target language, in this case, French:
         TextResult result =
@@ -151,8 +154,11 @@ a `TextTranslationOptions`, with the following setters:
   [Listing available languages](#listing-available-languages).
     - `Formality.Less`: use informal language.
     - `Formality.More`: use formal, more polite language.
-- `setGlossaryId()`: specifies a glossary to use with translation, as a string
-  containing the glossary ID.
+- `setGlossary()`: specifies a glossary to use with translation, as a string
+  containing the glossary ID, or a `GlossaryInfo` object (this object is
+  returned by glossary lookup functions, for example `listGlossaries()`).
+    - `setGlossaryId()` is also available for backward-compatibility, accepting
+      a string containing the glossary ID.
 - `setTagHandling()`: type of tags to parse before translation, options are
   `"html"` and `"xml"`.
 
@@ -184,7 +190,7 @@ There are additional optional arguments to control translation, see
 [Document translation options](#document-translation-options) below.
 
 ```java
-class Example {
+class Example {  // Continuing class Example from above
     public void documentTranslationExamples() throws Exception {
         // Translate a formal document from English to German
         File inputFile = new File("/path/to/Instruction Manual.docx");
@@ -220,10 +226,184 @@ the following functions directly:
 #### Document translation options
 
 In addition to the input file, output file, `sourceLang` and `targetLang`
-arguments, the available `translateDocument()` setters are:
+arguments, `translateDocument()` accepts an optional
+`DocumentTranslationOptions`, with the following setters:
 
-- `setFormality()`: same as in [Text translation options](#text-translation-options).
-- `setGlossaryId()`: same as in [Text translation options](#text-translation-options).
+- `setFormality()`: same as
+  in [Text translation options](#text-translation-options).
+- `setGlossary()`: same as
+  in [Text translation options](#text-translation-options).
+- `setGlossaryId()`: same as
+  in [Text translation options](#text-translation-options).
+
+### Glossaries
+
+Glossaries allow you to customize your translations using user-defined terms.
+Multiple glossaries can be stored with your account, each with a user-specified
+name and a uniquely-assigned ID.
+
+#### Creating a glossary
+
+You can create a glossary with `createGlossary()` by passing your desired
+glossary name, and a `GlossaryEntries` object specifying the terms to
+store in the glossary.
+
+Each glossary applies to a single source-target language pair. Note: Glossaries
+are only supported for some language pairs, see
+[Listing available glossary languages](#listing-available-glossary-languages)
+for more information.
+
+If successful, the glossary is created and stored with your DeepL account, and
+a `GlossaryInfo` object is returned including the ID, name, languages and entry
+count.
+
+```java
+class Example {  // Continuing class Example from above
+    public void createGlossaryExample() throws Exception {
+        // Create an English to German glossary with two terms:
+        GlossaryEntries entries = new GlossaryEntries() {{
+            put("artist", "Maler");
+            put("prize", "Gewinn");
+        }};
+        GlossaryInfo myGlossary =
+                translator.createGlossary("My glossary", "en", "de", entries);
+
+        System.out.printf("Created '%s' (%s) %s->%s containing %d entries\n",
+                          myGlossary.getName(),
+                          myGlossary.getGlossaryId(),
+                          myGlossary.getSourceLang(),
+                          myGlossary.getTargetLang(),
+                          myGlossary.getEntryCount());
+        // Example: Created 'My glossary' (559192ed-8e23-...) en->de containing 2 entries
+    }
+}
+```
+
+To construct the GlossaryEntries, you can insert entries using typical Map 
+functions like `put()`. The `fromTsv()` function allows creating GlossaryEntries
+from TSV data.
+
+You can also create a glossary using a glossary downloaded from the DeepL
+website by using `createGlossaryFromCsv()` with either a CSV file, or a string
+containing the CSV data:
+
+```java
+class Example {  // Continuing class Example from above
+    public createGlossaryFromCsvExample() throws Exception {
+        File csvFile = new File("/path/to/glossary_file.csv");
+        GlossaryInfo myGlossary =
+                translator.createGlossaryFromCsv("My glossary",
+                                                 "en",
+                                                 "de",
+                                                 csvFile);
+    }
+}
+```
+
+The [API documentation][api-docs-csv-format] explains the expected CSV format in
+detail.
+
+#### Getting, listing, and deleting stored glossaries
+
+Functions to get, list, and delete stored glossaries are also provided:
+
+- `getGlossary()` takes a glossary ID and returns a `GlossaryInfo` object for a
+  stored glossary, or throws an exception if no such glossary is found.
+- `listGlossaries()` returns a list of `GlossaryInfo` objects corresponding to
+  all of your stored glossaries.
+- `deleteGlossary()` takes a glossary ID or `GlossaryInfo` object and deletes
+  the stored glossary from the server, or throws an exception if no such
+  glossary is found.
+
+```java
+class Example {  // Continuing class Example from above
+    public getListDeleteGlossaryExamples() throws Exception {
+        // Retrieve a stored glossary using the ID
+        String glossaryId = "559192ed-8e23-...";
+        GlossaryInfo myGlossary = translator.getGlossary(glossaryId);
+
+        // Find and delete glossaries named 'Old glossary'
+        List<GlossaryInfo> glossaries = translator.listGlossaries();
+        for (GlossaryInfo glossary : glossaries) {
+            if (glossary.getName() == "Old glossary") {
+                translator.deleteGlossary(glossary);
+            }
+        }
+    }
+}
+```
+
+#### Listing entries in a stored glossary
+
+The `GlossaryInfo` object does not contain the glossary entries, but instead
+only the number of entries in the `entry_count` property.
+
+To list the entries contained within a stored glossary, use
+`getGlossaryEntries()` providing either the `GlossaryInfo` object or glossary
+ID:
+
+```java
+class Example {  // Continuing class Example from above
+  public getGlossaryEntriesExample() throws Exception {
+      GlossaryEntries entries = translator.getGlossaryEntries(myGlossary);
+      
+      for (Map.Entry<String, String> entry : entries.entrySet()) {
+        System.out.println(entry.getKey() + ":" + entry.getValue());
+      }
+      // prints:
+      //   artist:Maler
+      //   prize:Gewinn
+  }
+}
+```
+
+#### Using a stored glossary
+
+You can use a stored glossary for text translation by setting the `glossary`
+argument to either the glossary ID or `GlossaryInfo` object. You must also
+specify the `source_lang` argument (it is required when using a glossary):
+
+```java
+class Example {  // Continuing class Example from above
+    public usingGlossaryExample() throws Exception {
+        String text = "The artist was awarded a prize.";
+        TextTranslationOptions options =
+                new TextTranslationOptions().setGlossary(my_glossary);
+        TextResult resultWithGlossary =
+                translator.translateText(text, "en", "de", options);
+        System.out.println(resultWithGlossary.getText()); // "Der Maler wurde mit einem Gewinn ausgezeichnet."
+
+        // For comparison, the result without a glossary:
+        TextResult resultWithoutGlossary =
+                translator.translateText(text, "en", "de");
+        System.out.println(resultWithoutGlossary.getText()); // "Der Künstler wurde mit einem Preis ausgezeichnet."
+    }
+}
+```
+
+Using a stored glossary for document translation is the same: set the `glossary`
+argument and specify the `source_lang` argument:
+
+```java
+class Example {  // Continuing class Example from above
+    public getListDeleteGlossaryExamples() throws Exception {
+        String glossaryId = "559192ed-8e23-...";
+        DocumentTranslationOptions options =
+                new DocumentTranslationOptions().setGlossary(glossaryId);
+
+        File inputFile = new File("/path/to/Instruction Manual.docx");
+        File outputFile = new File("/path/to/Bedienungsanleitung.docx");
+        translator.translateDocument(inputFile,
+                                     outputFile,
+                                     "en",
+                                     "de",
+                                     options);
+    }
+}
+```
+
+The `translateDocument()` and `translateDocumentUpload()` functions both
+support the `glossary` argument.
 
 ### Checking account usage
 
@@ -242,7 +422,7 @@ that checks if the usage has reached the limit. The top level `Usage` object has
 the `any_limit_reached` property to check all usage subtypes.
 
 ```java
-class Example {
+class Example {  // Continuing class Example from above
     public void getUsageExample() throws Exception {
         Usage usage = translator.getUsage();
         if (usage.anyLimitReached()) {
@@ -274,15 +454,15 @@ for target languages, and indicates whether the target language supports the
 optional `formality` parameter.
 
 ```java
-class Example {
+class Example {  // Continuing class Example from above
     public void getLanguagesExample() throws Exception {
         List<Language> sourceLanguages = translator.getSourceLanguages();
         List<Language> targetLanguages = translator.getTargetLanguages();
         System.out.println("Source languages:");
         for (Language language : sourceLanguages) {
-          System.out.printf("%s (%s)%n",
-                            language.getName(),
-                            language.getCode()); // Example: "German (de)"
+            System.out.printf("%s (%s)%n",
+                              language.getName(),
+                              language.getCode()); // Example: "German (de)"
         }
 
         System.out.println("Target languages:");
@@ -292,15 +472,44 @@ class Example {
                                   language.getName(),
                                   language.getCode()); // Example: "Italian (it) supports formality"
 
-          } else {
+            } else {
                 System.out.printf("%s (%s)%n",
                                   language.getName(),
                                   language.getCode()); // Example: "Lithuanian (lt)"
-          }
+            }
         }
     }
 }
 ```
+
+#### Listing available glossary languages
+
+Glossaries are supported for a subset of language pairs. To retrieve those
+languages use the `getGlossaryLanguages()` function, which returns an array
+of `GlossaryLanguagePair` objects. Use the `getSourceLanguage()` and
+`getTargetLanguage()` functions to check the pair of language codes supported.
+
+```java
+class Example {  // Continuing class Example from above
+    public void getGlossaryLanguagesExample() throws Exception {
+        List<GlossaryLanguagePair> glossaryLanguages =
+                translator.getGlossaryLanguages();
+        for (GlossaryLanguagePair glossaryLanguage : glossaryLanguages) {
+            System.out.printf("%s to %s\n",
+                              glossaryLanguage.getSourceLanguage(),
+                              glossaryLanguage.getTargetLanguage());
+            // Example: "en to de", "de to en", etc.
+        }
+    }
+}
+```
+
+You can also find the list of supported glossary language pairs in the
+[API documentation][api-docs-glossary-lang-list].
+
+Note that glossaries work for all target regional-variants: a glossary for the
+target language English (`"en"`) supports translations to both American English
+(`"en-US"`) and British English (`"en-GB"`).
 
 ### Exceptions
 
@@ -314,7 +523,7 @@ The `Translator` constructor accepts `TranslatorOptions` as a second argument,
 for example:
 
 ```java
-class Example {
+class Example {  // Continuing class Example from above
     public void configurationExample() throws Exception {
         TranslatorOptions options =
                 new TranslatorOptions().setMaxRetries(1).setTimeout(Duration.ofSeconds(
@@ -329,9 +538,9 @@ The available options setters are:
 - `setMaxRetries()`: maximum number of failed HTTP requests to retry, the
   default is 5. Note: only failures due to transient conditions are retried e.g.
   timeouts or temporary server overload.
-- `setTimeout()`: connection timeout for each HTTP request. 
+- `setTimeout()`: connection timeout for each HTTP request.
 - `setProxy()`: provide details about a proxy to use for all HTTP requests to
-  DeepL. 
+  DeepL.
 - `setHeaders()`: additional HTTP headers to attach to all requests.
 - `setServerUrl()`: base URL for DeepL API, may be overridden for testing
   purposes. By default, the correct DeepL API (Free or Pro) is automatically
@@ -365,6 +574,8 @@ tests using `./gradlew test` with the `DEEPL_MOCK_SERVER_PORT` and
 `DEEPL_SERVER_URL` environment variables defined referring to the mock-server.
 
 [api-docs]: https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-java-readme
+
+[api-docs-csv-format]: https://www.deepl.com/docs-api/managing-glossaries/supported-glossary-formats/?utm_source=github&utm_medium=github-java-readme
 
 [api-docs-xml-handling]: https://www.deepl.com/docs-api/handling-xml/?utm_source=github&utm_medium=github-java-readme
 

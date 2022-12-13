@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Added
+* Add support for glossary management functions.
 ### Changed
 * `parsing.ErrorResponse` fields `message` and `detail` are now private,
   encapsulated with getters.

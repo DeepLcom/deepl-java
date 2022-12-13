@@ -47,6 +47,23 @@ public class TextTranslationOptions {
   }
 
   /**
+   * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
+   * no glossary is used.
+   */
+  public TextTranslationOptions setGlossary(GlossaryInfo glossary) {
+    return setGlossary(glossary.getGlossaryId());
+  }
+
+  /**
+   * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
+   * no glossary is used.
+   */
+  public TextTranslationOptions setGlossary(String glossaryId) {
+    this.glossaryId = glossaryId;
+    return this;
+  }
+
+  /**
    * Specifies how input translation text should be split into sentences. By default, this value is
    * <code>null</code> and the default sentence splitting mode is used.
    *

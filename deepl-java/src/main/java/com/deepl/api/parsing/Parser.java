@@ -40,12 +40,25 @@ public class Parser {
     return gson.fromJson(json, languageListType);
   }
 
+  public List<GlossaryLanguagePair> parseGlossaryLanguageList(String json) {
+    return gson.fromJson(json, GlossaryLanguagesResponse.class).getSupportedLanguages();
+  }
+
   public DocumentStatus parseDocumentStatus(String json) {
     return gson.fromJson(json, DocumentStatus.class);
   }
 
   public DocumentHandle parseDocumentHandle(String json) {
     return gson.fromJson(json, DocumentHandle.class);
+  }
+
+  public GlossaryInfo parseGlossaryInfo(String json) {
+    return gson.fromJson(json, GlossaryInfo.class);
+  }
+
+  public List<GlossaryInfo> parseGlossaryInfoList(String json) {
+    GlossaryListResponse result = gson.fromJson(json, GlossaryListResponse.class);
+    return result.getGlossaries();
   }
 
   public String parseErrorMessage(String json) {

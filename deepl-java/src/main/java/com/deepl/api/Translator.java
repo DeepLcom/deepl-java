@@ -172,7 +172,7 @@ public class Translator {
     Iterable<KeyValuePair<String, String>> params =
         createHttpParams(texts, sourceLang, targetLang, options);
     HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/translate", params);
-    checkResponse(response, false);
+    checkResponse(response, false, false);
     return jsonParser.parseTextResult(response.getBody());
   }
 
@@ -228,7 +228,7 @@ public class Translator {
    */
   public Usage getUsage() throws DeepLException, InterruptedException {
     HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/usage");
-    checkResponse(response, false);
+    checkResponse(response, false, false);
     return jsonParser.parseUsage(response.getBody());
   }
 
@@ -272,8 +272,25 @@ public class Translator {
       params.add(new KeyValuePair<>("type", "target"));
     }
     HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/languages", params);
-    checkResponse(response, false);
+    checkResponse(response, false, false);
     return jsonParser.parseLanguages(response.getBody());
+  }
+
+  /**
+   * Retrieves the list of supported glossary language pairs. When creating glossaries, the source
+   * and target language pair must match one of the available language pairs.
+   *
+   * @return List of {@link GlossaryLanguagePair} objects representing the available glossary
+   *     language pairs.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public List<GlossaryLanguagePair> getGlossaryLanguages()
+      throws DeepLException, InterruptedException {
+    HttpResponse response =
+        httpClientWrapper.sendGetRequestWithBackoff("/v2/glossary-language-pairs");
+    checkResponse(response, false, false);
+    return jsonParser.parseGlossaryLanguageList(response.getBody());
   }
 
   /**
@@ -411,7 +428,7 @@ public class Translator {
       HttpResponse response =
           httpClientWrapper.uploadWithBackoff(
               "/v2/document/", params, inputFile.getName(), inputStream);
-      checkResponse(response, false);
+      checkResponse(response, false, false);
       return jsonParser.parseDocumentHandle(response.getBody());
     }
   }
@@ -455,7 +472,7 @@ public class Translator {
         createHttpParams(sourceLang, targetLang, options);
     HttpResponse response =
         httpClientWrapper.uploadWithBackoff("/v2/document/", params, fileName, inputStream);
-    checkResponse(response, false);
+    checkResponse(response, false, false);
     return jsonParser.parseDocumentHandle(response.getBody());
   }
 
@@ -486,7 +503,7 @@ public class Translator {
     params.add(new KeyValuePair<>("document_key", handle.getDocumentKey()));
     String relativeUrl = String.format("/v2/document/%s", handle.getDocumentId());
     HttpResponse response = httpClientWrapper.sendRequestWithBackoff(relativeUrl, params);
-    checkResponse(response, false);
+    checkResponse(response, false, false);
     return jsonParser.parseDocumentStatus(response.getBody());
   }
 
@@ -564,6 +581,158 @@ public class Translator {
       assert response.getBody() != null;
       StreamUtil.transferTo(response.getBody(), outputStream);
     }
+  }
+
+  /**
+   * Creates a glossary in your DeepL account with the specified details and returns a {@link
+   * GlossaryInfo} object with details about the newly created glossary. The glossary can be used in
+   * translations to override translations for specific terms (words). The glossary source and
+   * target languages must match the languages of translations for which it will be used.
+   *
+   * @param name User-defined name to assign to the glossary; must not be empty.
+   * @param sourceLang Language code of the source terms language.
+   * @param targetLang Language code of the target terms language.
+   * @param entries Glossary entries to add to the glossary.
+   * @return {@link GlossaryInfo} object with details about the newly created glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public GlossaryInfo createGlossary(
+      String name, String sourceLang, String targetLang, GlossaryEntries entries)
+      throws DeepLException, InterruptedException {
+    return createGlossaryInternal(name, sourceLang, targetLang, "tsv", entries.toTsv());
+  }
+
+  /**
+   * Creates a glossary in your DeepL account with the specified details and returns a {@link
+   * GlossaryInfo} object with details about the newly created glossary. The glossary can be used in
+   * translations to override translations for specific terms (words). The glossary source and
+   * target languages must match the languages of translations for which it will be used.
+   *
+   * @param name User-defined name to assign to the glossary; must not be empty.
+   * @param sourceLang Language code of the source terms language.
+   * @param targetLang Language code of the target terms language.
+   * @param csvFile File containing CSV content for glossary.
+   * @return {@link GlossaryInfo} object with details about the newly created glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   * @throws IOException If an I/O error occurs.
+   */
+  public GlossaryInfo createGlossaryFromCsv(
+      String name, String sourceLang, String targetLang, File csvFile)
+      throws DeepLException, InterruptedException, IOException {
+    try (FileInputStream stream = new FileInputStream(csvFile)) {
+      String csvContent = StreamUtil.readStream(stream);
+      return createGlossaryFromCsv(name, sourceLang, targetLang, csvContent);
+    }
+  }
+
+  /**
+   * Creates a glossary in your DeepL account with the specified details and returns a {@link
+   * GlossaryInfo} object with details about the newly created glossary. The glossary can be used in
+   * translations to override translations for specific terms (words). The glossary source and
+   * target languages must match the languages of translations for which it will be used.
+   *
+   * @param name User-defined name to assign to the glossary; must not be empty.
+   * @param sourceLang Language code of the source terms language.
+   * @param targetLang Language code of the target terms language.
+   * @param csvContent String containing CSV content.
+   * @return {@link GlossaryInfo} object with details about the newly created glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public GlossaryInfo createGlossaryFromCsv(
+      String name, String sourceLang, String targetLang, String csvContent)
+      throws DeepLException, InterruptedException {
+    return createGlossaryInternal(name, sourceLang, targetLang, "csv", csvContent);
+  }
+
+  /**
+   * Retrieves information about the glossary with the specified ID and returns a {@link
+   * GlossaryInfo} object containing details. This does not retrieve the glossary entries; to
+   * retrieve entries use {@link Translator#getGlossaryEntries(String)}
+   *
+   * @param glossaryId ID of glossary to retrieve.
+   * @return {@link GlossaryInfo} object with details about the specified glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public GlossaryInfo getGlossary(String glossaryId) throws DeepLException, InterruptedException {
+    String relativeUrl = String.format("/v2/glossaries/%s", glossaryId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, true);
+    return jsonParser.parseGlossaryInfo(response.getBody());
+  }
+
+  /**
+   * Retrieves information about all glossaries and returns an array of {@link GlossaryInfo} objects
+   * containing details. This does not retrieve the glossary entries; to retrieve entries use {@link
+   * Translator#getGlossaryEntries(String)}
+   *
+   * @return Array of {@link GlossaryInfo} objects with details about each glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public List<GlossaryInfo> listGlossaries() throws DeepLException, InterruptedException {
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff("/v2/glossaries");
+    checkResponse(response, false, false);
+    return jsonParser.parseGlossaryInfoList(response.getBody());
+  }
+
+  /**
+   * Retrieves the entries containing within the glossary and returns them as a {@link
+   * GlossaryEntries}.
+   *
+   * @param glossary {@link GlossaryInfo} object corresponding to glossary for which to retrieve
+   *     entries.
+   * @return {@link GlossaryEntries} containing entry pairs of the glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public GlossaryEntries getGlossaryEntries(GlossaryInfo glossary)
+      throws DeepLException, InterruptedException {
+    return getGlossaryEntries(glossary.getGlossaryId());
+  }
+
+  /**
+   * Retrieves the entries containing within the glossary with the specified ID and returns them as
+   * a {@link GlossaryEntries}.
+   *
+   * @param glossaryId ID of glossary for which to retrieve entries.
+   * @return {@link GlossaryEntries} containing entry pairs of the glossary.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public GlossaryEntries getGlossaryEntries(String glossaryId)
+      throws DeepLException, InterruptedException {
+    String relativeUrl = String.format("/v2/glossaries/%s/entries", glossaryId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, true);
+    return GlossaryEntries.fromTsv(response.getBody());
+  }
+
+  /**
+   * Deletes the specified glossary.
+   *
+   * @param glossary {@link GlossaryInfo} object corresponding to glossary to delete.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public void deleteGlossary(GlossaryInfo glossary) throws DeepLException, InterruptedException {
+    deleteGlossary(glossary.getGlossaryId());
+  }
+
+  /**
+   * Deletes the glossary with the specified ID.
+   *
+   * @param glossaryId ID of glossary to delete.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public void deleteGlossary(String glossaryId) throws DeepLException, InterruptedException {
+    String relativeUrl = String.format("/v2/glossaries/%s", glossaryId);
+    HttpResponse response = httpClientWrapper.sendDeleteRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, true);
   }
 
   /**
@@ -697,6 +866,9 @@ public class Translator {
     }
 
     if (glossaryId != null) {
+      if (sourceLang == null) {
+        throw new IllegalArgumentException("sourceLang is required if using a glossary");
+      }
       params.add(new KeyValuePair<>("glossary_id", glossaryId));
     }
 
@@ -736,12 +908,27 @@ public class Translator {
     }
   }
 
+  /** Creates a glossary with given details. */
+  private GlossaryInfo createGlossaryInternal(
+      String name, String sourceLang, String targetLang, String entriesFormat, String entries)
+      throws DeepLException, InterruptedException {
+    ArrayList<KeyValuePair<String, String>> params = new ArrayList<>();
+    params.add(new KeyValuePair<>("name", name));
+    params.add(new KeyValuePair<>("source_lang", sourceLang));
+    params.add(new KeyValuePair<>("target_lang", targetLang));
+    params.add(new KeyValuePair<>("entries_format", entriesFormat));
+    params.add(new KeyValuePair<>("entries", entries));
+    HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/glossaries", params);
+    checkResponse(response, false, false);
+    return jsonParser.parseGlossaryInfo(response.getBody());
+  }
+
   /**
-   * Functions the same as {@link Translator#checkResponse(HttpResponse, boolean)} but accepts
-   * response stream for document downloads. If the HTTP status code represents failure, the
+   * Functions the same as {@link Translator#checkResponse(HttpResponse, boolean, boolean)} but
+   * accepts response stream for document downloads. If the HTTP status code represents failure, the
    * response stream is converted to a String response to throw the appropriate exception.
    *
-   * @see Translator#checkResponse(HttpResponse, boolean)
+   * @see Translator#checkResponse(HttpResponse, boolean, boolean)
    */
   private void checkResponse(HttpResponseStream response) throws DeepLException {
     if (response.getCode() >= HttpURLConnection.HTTP_OK
@@ -751,17 +938,20 @@ public class Translator {
     if (response.getBody() == null) {
       throw new DeepLException("response stream is empty");
     }
-    checkResponse(response.toStringResponse(), true);
+    checkResponse(response.toStringResponse(), true, false);
   }
 
   /**
    * Checks the response HTTP status is OK, otherwise throws corresponding exception.
    *
    * @param response Response received from DeepL API.
+   * @param inDocumentDownload True if document download function is used, otherwise false.
+   * @param usingGlossary True if a glossary function is used, otherwise false.
    * @throws DeepLException Throws {@link DeepLException} or a derived exception depending on the
    *     type of error.
    */
-  private void checkResponse(HttpResponse response, boolean inDocumentDownload)
+  private void checkResponse(
+      HttpResponse response, boolean inDocumentDownload, boolean usingGlossary)
       throws DeepLException {
     if (response.getCode() >= 200 && response.getCode() < 300) {
       return;
@@ -783,7 +973,11 @@ public class Translator {
       case HttpURLConnection.HTTP_FORBIDDEN:
         throw new AuthorizationException("Authorization failure, check auth_key" + messageSuffix);
       case HttpURLConnection.HTTP_NOT_FOUND:
-        throw new NotFoundException("Not found, check serverUrl" + messageSuffix);
+        if (usingGlossary) {
+          throw new GlossaryNotFoundException("Glossary not found" + messageSuffix);
+        } else {
+          throw new NotFoundException("Not found, check serverUrl" + messageSuffix);
+        }
       case 429:
         throw new TooManyRequestsException(
             "Too many requests, DeepL servers are currently experiencing high load"
