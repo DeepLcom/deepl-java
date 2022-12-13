@@ -11,16 +11,25 @@ import org.jetbrains.annotations.Nullable;
  * <p>This class is internal; you should not use this class directly.
  */
 class ErrorResponse {
-  @Nullable String message;
-  @Nullable String detail;
+  @Nullable private String message;
+  @Nullable private String detail;
 
+  /** Returns a diagnostic string including the message and detail (if available). */
   public String getErrorMessage() {
     StringBuilder sb = new StringBuilder();
-    if (message != null) sb.append("message: ").append(message);
-    if (detail != null) {
+    if (getMessage() != null) sb.append("message: ").append(getMessage());
+    if (getDetail() != null) {
       if (sb.length() != 0) sb.append(", ");
-      sb.append("detail: ").append(detail);
+      sb.append("detail: ").append(getDetail());
     }
     return sb.toString();
+  }
+
+  public @Nullable String getMessage() {
+    return message;
+  }
+
+  public @Nullable String getDetail() {
+    return detail;
   }
 }
