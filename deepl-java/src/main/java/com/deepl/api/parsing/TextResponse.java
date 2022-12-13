@@ -6,6 +6,11 @@ package com.deepl.api.parsing;
 import com.deepl.api.TextResult;
 import java.util.List;
 
+/**
+ * Class representing text translation responses from the DeepL API.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 class TextResponse {
   public List<TextResult> translations;
 }

@@ -5,6 +5,11 @@ package com.deepl.api.parsing;
 
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Class representing error messages returned by the DeepL API.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 class ErrorResponse {
   @Nullable String message;
   @Nullable String detail;

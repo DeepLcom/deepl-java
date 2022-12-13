@@ -11,7 +11,11 @@ import java.time.*;
 import java.util.*;
 import org.jetbrains.annotations.*;
 
-/** Helper class providing functions to make HTTP requests and retry with exponential-backoff. */
+/**
+ * Helper class providing functions to make HTTP requests and retry with exponential-backoff.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 class HttpClientWrapper {
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String POST = "POST";

@@ -7,6 +7,11 @@ import com.deepl.api.Language;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 
+/**
+ * Utility class for deserializing language codes returned by the DeepL API.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 class LanguageDeserializer implements JsonDeserializer<Language> {
   public Language deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {

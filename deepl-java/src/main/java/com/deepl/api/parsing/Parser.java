@@ -10,6 +10,11 @@ import java.lang.reflect.*;
 import java.util.*;
 import org.jetbrains.annotations.*;
 
+/**
+ * Parsing functions for responses from the DeepL API.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 public class Parser {
   private final Gson gson;
 

@@ -8,6 +8,11 @@ import com.google.gson.*;
 import java.lang.reflect.*;
 import org.jetbrains.annotations.*;
 
+/**
+ * Class representing usage responses from the DeepL API.
+ *
+ * <p>This class is internal; you should not use this class directly.
+ */
 class UsageDeserializer implements JsonDeserializer<Usage> {
   public Usage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {
