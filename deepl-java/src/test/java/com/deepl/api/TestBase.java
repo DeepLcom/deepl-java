@@ -162,16 +162,16 @@ public class TestBase {
 
   protected File createInputFile(String content) throws IOException {
     File inputFile = new File(tempDir + "/example_document.txt");
-    inputFile.delete();
-    inputFile.createNewFile();
+    boolean ignored = inputFile.delete();
+    ignored = inputFile.createNewFile();
     writeToFile(inputFile, content);
     return inputFile;
   }
 
   protected File createOutputFile() {
     File outputFile = new File(tempDir + "/output/example_document.txt");
-    new File(outputFile.getParent()).mkdir();
-    outputFile.delete();
+    boolean ignored = new File(outputFile.getParent()).mkdir();
+    ignored = outputFile.delete();
     return outputFile;
   }
 }
