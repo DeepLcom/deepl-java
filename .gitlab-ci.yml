@@ -6,10 +6,12 @@ include:
 
 # Global --------------------------
 
-image: openjdk:latest
+# Use 17 (LTS) as base
+image: eclipse-temurin:17
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  JAVA_TOOL_OPTIONS: ""
 
 stages:
   - check
@@ -44,18 +46,16 @@ test:
   extends: .test
   parallel:
     matrix:
-      - DOCKER_IMAGE: "openjdk:18"
+      - DOCKER_IMAGE: "eclipse-temurin:18"
       - DOCKER_IMAGE: "openjdk:8"
         USE_MOCK_SERVER: "use mock server"
-      - DOCKER_IMAGE: "openjdk:11"
+      - DOCKER_IMAGE: "eclipse-temurin:8"
         USE_MOCK_SERVER: "use mock server"
-      - DOCKER_IMAGE: "openjdk:17"
+      - DOCKER_IMAGE: "eclipse-temurin:11"
         USE_MOCK_SERVER: "use mock server"
-      - DOCKER_IMAGE: "openjdk:18"
+      - DOCKER_IMAGE: "eclipse-temurin:17"
         USE_MOCK_SERVER: "use mock server"
-      - DOCKER_IMAGE: "openjdk:19"
-        USE_MOCK_SERVER: "use mock server"
-      - DOCKER_IMAGE: "openjdk:20"
+      - DOCKER_IMAGE: "eclipse-temurin:19"
         USE_MOCK_SERVER: "use mock server"
   image: ${DOCKER_IMAGE}
   script:
