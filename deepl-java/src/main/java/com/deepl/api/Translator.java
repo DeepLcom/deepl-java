@@ -765,14 +765,16 @@ public class Translator {
 
     if (options != null) {
       // Note: formality and glossaryId are added above
-      if (options.getSentenceSplittingMode() != null
-          && options.getSentenceSplittingMode() != SentenceSplittingMode.All) {
+      if (options.getSentenceSplittingMode() != null) {
         switch (options.getSentenceSplittingMode()) {
           case Off:
             params.add(new KeyValuePair<>("split_sentences", "0"));
             break;
           case NoNewlines:
             params.add(new KeyValuePair<>("split_sentences", "nonewlines"));
+            break;
+          case All:
+            params.add(new KeyValuePair<>("split_sentences", "1"));
             break;
           default:
             break;
