@@ -70,7 +70,7 @@ class GeneralTest extends TestBase {
       }
       Assertions.assertNull(language.getSupportsFormality());
     }
-    Assertions.assertTrue(sourceLanguages.size() > 20);
+    Assertions.assertTrue(sourceLanguages.size() >= 29);
 
     for (Language language : targetLanguages) {
       Assertions.assertNotNull(language.getSupportsFormality());
@@ -79,7 +79,7 @@ class GeneralTest extends TestBase {
         Assertions.assertEquals("German", language.getName());
       }
     }
-    Assertions.assertTrue(targetLanguages.size() > 20);
+    Assertions.assertTrue(targetLanguages.size() >= 31);
   }
 
   @Test

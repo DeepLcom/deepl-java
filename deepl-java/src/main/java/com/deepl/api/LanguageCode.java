@@ -62,11 +62,17 @@ public class LanguageCode {
   /** Japanese language code, may be used as source or target language. */
   public static final String Japanese = "ja";
 
+  /** Korean language code, may be used as source or target language. */
+  public static final String Korean = "ko";
+
   /** Lithuanian language code, may be used as source or target language. */
   public static final String Lithuanian = "lt";
 
   /** Latvian language code, may be used as source or target language. */
   public static final String Latvian = "lv";
+
+  /** Norwegian (bokmål) language code, may be used as source or target language. */
+  public static final String Norwegian = "nb";
 
   /** Dutch language code, may be used as source or target language. */
   public static final String Dutch = "nl";

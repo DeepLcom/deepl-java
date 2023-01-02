@@ -64,8 +64,10 @@ public class TestBase {
     exampleText.put("id", "berkas proton");
     exampleText.put("it", "fascio di protoni");
     exampleText.put("ja", "陽子ビーム");
+    exampleText.put("ko", "양성자 빔");
     exampleText.put("lt", "protonų spindulys");
     exampleText.put("lv", "protonu staru kūlis");
+    exampleText.put("nb", "protonstråle");
     exampleText.put("nl", "protonenbundel");
     exampleText.put("pl", "wiązka protonów");
     exampleText.put("pt", "feixe de prótons");

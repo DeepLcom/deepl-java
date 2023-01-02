@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Add example maven project using this library.
+* New languages available: Korean (`'ko'`) and Norwegian (bokmål) (`'nb'`). Add
+  language code constants and tests.
+
+  Note: older library versions also support the new languages, this update only
+  adds new code constants.
 ### Changed
 ### Deprecated
 ### Removed
