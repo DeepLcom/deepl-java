@@ -55,7 +55,7 @@ public class Translator {
       headers.putAll(options.getHeaders());
     }
     headers.putIfAbsent("Authorization", "DeepL-Auth-Key " + authKey);
-    headers.putIfAbsent("User-Agent", "deepl-java/1.0.0");
+    headers.putIfAbsent("User-Agent", "deepl-java/1.0.1");
 
     this.httpClientWrapper =
         new HttpClientWrapper(
