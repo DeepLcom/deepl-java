@@ -10,6 +10,7 @@ include:
 image: eclipse-temurin:17
 
 variables:
+  DOCKER_IMAGE_PREFIX: ${CONTAINER_REGISTRY}/oss-client-libraries/${CI_PROJECT_NAME}-build
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   JAVA_TOOL_OPTIONS: ""
 
@@ -74,6 +75,27 @@ test:
     reports:
       junit:
         - deepl-java/build/reports/tests/test/index.html
+    when: always
+
+test_examples:
+  stage: test
+  extends: .test
+  parallel:
+    matrix:
+      - DOCKER_IMAGE: "maven:3.8"
+      - DOCKER_IMAGE: "maven:3.8-openjdk-18"
+      - DOCKER_IMAGE: "maven:3.8-openjdk-8"
+      - DOCKER_IMAGE: "maven:3.8-sapmachine-17"
+      - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-8"
+      - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-18"
+  image: ${DOCKER_IMAGE}
+  script:
+    - cd examples/maven/deepl-test-app
+    - mvn install -B -PbuildProject -l mvn_build.log
+    - mvn verify -PrunIntegrationTests
+  artifacts:
+    paths:
+      - examples/maven/deepl-test-app/mvn_build.log
     when: always
 
 # stage: publish -------------------------
