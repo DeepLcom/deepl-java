@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Add example maven project using this library.
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
 
 
 ## [1.0.1] - 2023-01-02
