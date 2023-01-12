@@ -848,7 +848,7 @@ public class Translator {
     }
     params.add(new KeyValuePair<>("target_lang", targetLang));
 
-    if (formality != null && formality != Formality.Default) {
+    if (formality != null) {
       switch (formality) {
         case More:
           params.add(new KeyValuePair<>("formality", "more"));
@@ -862,7 +862,9 @@ public class Translator {
         case PreferLess:
           params.add(new KeyValuePair<>("formality", "prefer_less"));
           break;
+        case Default:
         default:
+          params.add(new KeyValuePair<>("formality", "default"));
           break;
       }
     }
