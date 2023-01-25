@@ -10,7 +10,6 @@ include:
 image: eclipse-temurin:17
 
 variables:
-  DOCKER_IMAGE_PREFIX: ${CONTAINER_REGISTRY}/oss-client-libraries/${CI_PROJECT_NAME}-build
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   JAVA_TOOL_OPTIONS: ""
 
@@ -26,19 +25,42 @@ before_script:
 
 # stage: check ----------------------
 
-spotless:
+spotless_base:
   stage: check
   script: ./gradlew spotlessCheck
 
-licenseCheck:
+spotless_scheduled:
+  extends: spotless_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  retry: 2
+
+spotless_manual:
+  extends: spotless_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+
+.license_check_base:
   stage: check
   script:
     - ./license_checker.sh '*.java' | tee license_check_output.txt
     - '[ ! -s license_check_output.txt ]'
 
+license_check_scheduled:
+  extends: .license_check_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  retry: 2
+
+license_check_manual:
+  extends: .license_check_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+
+
 # stage: build ----------------------
 
-build:
+build_base:
   stage: build
   script:
     - ./gradlew assemble
@@ -46,12 +68,22 @@ build:
     paths:
       - deepl-java/build/
 
+build_scheduled:
+  extends: build_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  retry: 2
+
+build_manual:
+  extends: build_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+
 # stage: test -------------------------
 
-test:
+test_base:
   stage: test
   extends: .test
-  retry: 1
   parallel:
     matrix:
       - DOCKER_IMAGE: "eclipse-temurin:18"
@@ -84,16 +116,27 @@ test:
         - deepl-java/build/reports/tests/test/index.html
     when: always
 
-test_examples:
+test_scheduled:
+  extends: test_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  retry: 2
+
+test_manual:
+  stage: test
+  extends: test_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+
+test_examples_base:
   stage: test
   extends: .test
-  retry: 1
   parallel:
     matrix:
       - DOCKER_IMAGE: "maven:3.8"
       - DOCKER_IMAGE: "maven:3.8-openjdk-18"
       - DOCKER_IMAGE: "maven:3.8-openjdk-8"
-      - DOCKER_IMAGE: "maven:3.8-sapmachine-17"
+      - DOCKER_IMAGE: "maven:3.9-sapmachine-17"
       - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-8"
       - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-18"
   image: ${DOCKER_IMAGE}
@@ -106,13 +149,25 @@ test_examples:
       - examples/maven/deepl-test-app/mvn_build.log
     when: always
 
+test_examples_scheduled:
+  extends: test_examples_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  retry: 2
+
+test_examples_manual:
+  extends: test_examples_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+
 # stage: publish -------------------------
 
 publish:
   stage: publish
   extends: .publish
   dependencies:
-    - build
+    - build_scheduled
+    - build_manual
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
   script:
