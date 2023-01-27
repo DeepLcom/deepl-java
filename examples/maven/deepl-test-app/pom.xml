@@ -23,7 +23,7 @@
     <dependency>
       <groupId>com.deepl.api</groupId>
       <artifactId>deepl-java</artifactId>
-      <version>1.0.1</version>
+      <version>[1.0,2.0)</version>
     </dependency>
   </dependencies>
 
