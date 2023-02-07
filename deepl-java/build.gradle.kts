@@ -8,6 +8,12 @@ plugins {
 group = "com.deepl.api"
 version = "1.1.0"
 
+val sharedManifest = the<JavaPluginConvention>().manifest {
+    attributes (
+        "Implementation-Title" to "Gradle",
+        "Implementation-Version" to version
+    )
+}
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -20,6 +26,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains:annotations:20.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
 
     api("org.apache.commons:commons-math3:3.6.1")
 
@@ -42,11 +49,17 @@ spotless {
 tasks.register<Jar>("sourcesJar") {
     archiveClassifier.set("sources")
     from(sourceSets.main.get().allJava)
+    manifest = project.the<JavaPluginConvention>().manifest {
+        from(sharedManifest)
+    }
 }
 
 tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
     from(tasks.javadoc.get().destinationDir)
+    manifest = project.the<JavaPluginConvention>().manifest {
+        from(sharedManifest)
+    }
 }
 
 publishing {

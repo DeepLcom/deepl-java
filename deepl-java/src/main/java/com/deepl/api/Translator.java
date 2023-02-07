@@ -55,7 +55,9 @@ public class Translator {
       headers.putAll(options.getHeaders());
     }
     headers.putIfAbsent("Authorization", "DeepL-Auth-Key " + authKey);
-    headers.putIfAbsent("User-Agent", "deepl-java/1.1.0");
+    headers.putIfAbsent(
+        "User-Agent",
+        constructUserAgentString(options.getSendPlatformInfo(), options.getAppInfo()));
 
     this.httpClientWrapper =
         new HttpClientWrapper(
@@ -74,6 +76,27 @@ public class Translator {
    */
   public Translator(String authKey) throws IllegalArgumentException {
     this(authKey, new TranslatorOptions());
+  }
+
+  /**
+   * Builds the user-agent String which contains platform information.
+   *
+   * @return A string containing the client library version, java version and operating system.
+   */
+  private String constructUserAgentString(boolean sendPlatformInfo, AppInfo appInfo) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("deepl-java/1.1.0");
+    if (sendPlatformInfo) {
+      sb.append(" (");
+      Properties props = System.getProperties();
+      sb.append(props.get("os.name") + "-" + props.get("os.version") + "-" + props.get("os.arch"));
+      sb.append(") java/");
+      sb.append(props.get("java.version"));
+    }
+    if (appInfo != null) {
+      sb.append(" " + appInfo.getAppName() + "/" + appInfo.getAppVersion());
+    }
+    return sb.toString();
   }
 
   /**

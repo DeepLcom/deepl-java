@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Script to check our source code for license headers and a step for them in the CI.
+* Added system and java version information to the user-agent string that is sent with API calls, along with an opt-out.
+* Added method for applications that use this library to identify themselves in API requests they make.
+
 
 ## [1.1.0] - 2023-01-26
 ### Added

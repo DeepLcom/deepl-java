@@ -517,6 +517,26 @@ All module functions may raise `DeepLException` or one of its subclasses. If
 invalid arguments are provided, they may raise the standard exceptions
 `IllegalArgumentException`.
 
+### Writing a Plugin
+
+If you use this library in an application, please identify the application with
+`TranslatorOptions.setAppInfo()`, which takes the name and version of the app:
+
+```java
+class Example {  // Continuing class Example from above
+    public void configurationExample() throws Exception {
+        TranslatorOptions options =
+                new TranslatorOptions().setAppInfo("my-java-translation-plugin", "1.2.3");
+        Translator translator = new Translator(authKey, options);
+    }
+}
+```
+
+This information is passed along when the library makes calls to the DeepL API.
+Both name and version are required. Please note that setting the `User-Agent` header
+via `TranslatorOptions.setHeaders()` will override this setting, if you need to use this,
+please manually identify your Application in the `User-Agent` header.
+
 ### Configuration
 
 The `Translator` constructor accepts `TranslatorOptions` as a second argument,
@@ -545,6 +565,34 @@ The available options setters are:
 - `setServerUrl()`: base URL for DeepL API, may be overridden for testing
   purposes. By default, the correct DeepL API (Free or Pro) is automatically
   selected.
+
+#### Anonymous platform information
+
+By default, we send some basic information about the platform the client library is running on with each request, see [here for an explanation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent). This data is completely anonymous and only used to improve our product, not track any individual users. If you do not wish to send this data, you can opt-out when creating your `Translator` object by calling the `setSendPlatformInfo()` setter on the `TranslatorOptions` like so:
+
+```java
+class Example {  // Continuing class Example from above
+    public void configurationExample() throws Exception {
+        TranslatorOptions options =
+                new TranslatorOptions().setSendPlatformInfo(false);
+        Translator translator = new Translator(authKey, options);
+    }
+}
+```
+
+You can also customize the `User-Agent` header by setting its value explicitly in the `TranslatorOptions` object via the header field. Example:
+
+```java
+class Example {  // Continuing class Example from above
+    public void configurationExample() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "my custom user agent");
+        TranslatorOptions options =
+                new TranslatorOptions().setHeaders(headers);
+        Translator translator = new Translator(authKey, options);
+    }
+}
+```
 
 ## Issues
 

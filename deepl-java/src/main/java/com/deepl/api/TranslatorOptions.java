@@ -24,6 +24,8 @@ public class TranslatorOptions {
   @Nullable private Proxy proxy = null;
   @Nullable private Map<String, String> headers = null;
   @Nullable private String serverUrl = null;
+  private boolean sendPlatformInfo = true;
+  @Nullable private AppInfo appInfo = null;
 
   /**
    * Set the maximum number of failed attempts that {@link Translator} will retry, per request. By
@@ -69,6 +71,26 @@ public class TranslatorOptions {
     return this;
   }
 
+  /**
+   * Set whether to send basic platform information with each API call to improve DeepL products.
+   * Defaults to `true`, set to `false` to opt out. This option will be overriden if a
+   * `'User-agent'` header is present in this objects `headers`.
+   */
+  public TranslatorOptions setSendPlatformInfo(boolean sendPlatformInfo) {
+    this.sendPlatformInfo = sendPlatformInfo;
+    return this;
+  }
+
+  /**
+   * Set an identifier and a version for the program/plugin that uses this Client Library. Example:
+   * `Translator t = new Translator(myAuthKey, new TranslatorOptions()
+   * .setAppInfo('deepl-hadoop-plugin', '1.2.0'))
+   */
+  public TranslatorOptions setAppInfo(String appName, String appVersion) {
+    this.appInfo = new AppInfo(appName, appVersion);
+    return this;
+  }
+
   /** Gets the current maximum number of retries. */
   public int getMaxRetries() {
     return maxRetries;
@@ -92,5 +114,15 @@ public class TranslatorOptions {
   /** Gets the current custom server URL. */
   public @Nullable String getServerUrl() {
     return serverUrl;
+  }
+
+  /** Gets the `sendPlatformInfo` option */
+  public boolean getSendPlatformInfo() {
+    return sendPlatformInfo;
+  }
+
+  /** Gets the `appInfo` identifiers */
+  public @Nullable AppInfo getAppInfo() {
+    return appInfo;
   }
 }

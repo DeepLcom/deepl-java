@@ -3,11 +3,19 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
+import static org.mockito.Mockito.*;
+
 import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 
 class GeneralTest extends TestBase {
 
@@ -236,5 +244,97 @@ class GeneralTest extends TestBase {
     Assertions.assertTrue(usage.anyLimitReached());
     Assertions.assertNotNull(usage.getTeamDocument());
     Assertions.assertTrue(usage.getTeamDocument().limitReached());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideUserAgentTestData")
+  void testUserAgent(
+      SessionOptions sessionOptions,
+      TranslatorOptions translatorOptions,
+      Iterable<String> requiredStrings,
+      Iterable<String> blocklistedStrings)
+      throws Exception {
+    Map<String, String> headers = new HashMap<>();
+    HttpURLConnection con = Mockito.mock(HttpURLConnection.class);
+    Mockito.doAnswer(
+            invocation -> {
+              String key = (String) invocation.getArgument(0);
+              String value = (String) invocation.getArgument(1);
+              headers.put(key, value);
+              return null;
+            })
+        .when(con)
+        .setRequestProperty(Mockito.any(String.class), Mockito.any(String.class));
+    Mockito.when(con.getResponseCode()).thenReturn(200);
+    try (MockedConstruction<URL> mockUrl =
+        Mockito.mockConstruction(
+            URL.class,
+            (mock, context) -> {
+              Mockito.when(mock.openConnection()).thenReturn(con);
+            })) {
+      Translator translator = createTranslator(sessionOptions, translatorOptions);
+      Usage usage = translator.getUsage();
+      String userAgentHeader = headers.get("User-Agent");
+      for (String s : requiredStrings) {
+        Assertions.assertTrue(
+            userAgentHeader.contains(s),
+            String.format(
+                "Expected User-Agent header to contain %s\nActual:\n%s", s, userAgentHeader));
+      }
+      for (String n : blocklistedStrings) {
+        Assertions.assertFalse(
+            userAgentHeader.contains(n),
+            String.format(
+                "Expected User-Agent header not to contain %s\nActual:\n%s", n, userAgentHeader));
+      }
+    }
+  }
+
+  // Session options & Translator options: Used to construct the `Translator`
+  // Next arg: List of Strings that must be contained in the user agent header
+  // Last arg: List of Strings that must not be contained in the user agent header
+  private static Stream<? extends Arguments> provideUserAgentTestData() {
+    Map<String, String> testHeaders = new HashMap<>();
+    testHeaders.put("User-Agent", "my custom user agent");
+    Iterable<String> lightPlatformInfo = Arrays.asList("deepl-java/");
+    Iterable<String> lightPlatformInfoWithAppInfo =
+        Arrays.asList("deepl", "my-java-translation-plugin/1.2.3");
+    Iterable<String> detailedPlatformInfo = Arrays.asList(" java/", "(");
+    Iterable<String> detailedPlatformInfoWithAppInfo =
+        Arrays.asList(" java/", "(", "my-java-translation-plugin/1.2.3");
+    Iterable<String> customUserAgent = Arrays.asList("my custom user agent");
+    Iterable<String> noStrings = new ArrayList<String>();
+    return Stream.of(
+        Arguments.of(
+            new SessionOptions(), new TranslatorOptions(), detailedPlatformInfo, noStrings),
+        Arguments.of(
+            new SessionOptions(),
+            new TranslatorOptions().setSendPlatformInfo(false),
+            lightPlatformInfo,
+            detailedPlatformInfo),
+        Arguments.of(
+            new SessionOptions(),
+            new TranslatorOptions().setHeaders(testHeaders),
+            customUserAgent,
+            detailedPlatformInfo),
+        Arguments.of(
+            new SessionOptions(),
+            new TranslatorOptions().setAppInfo("my-java-translation-plugin", "1.2.3"),
+            detailedPlatformInfoWithAppInfo,
+            noStrings),
+        Arguments.of(
+            new SessionOptions(),
+            new TranslatorOptions()
+                .setSendPlatformInfo(false)
+                .setAppInfo("my-java-translation-plugin", "1.2.3"),
+            lightPlatformInfoWithAppInfo,
+            detailedPlatformInfo),
+        Arguments.of(
+            new SessionOptions(),
+            new TranslatorOptions()
+                .setHeaders(testHeaders)
+                .setAppInfo("my-java-translation-plugin", "1.2.3"),
+            customUserAgent,
+            detailedPlatformInfoWithAppInfo));
   }
 }
