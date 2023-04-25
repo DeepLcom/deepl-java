@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased 
 ### Fixed
 * Changed document translation to poll the server every 5 seconds. This should greatly reduce observed document translation processing time.
+* Fix getUsage request to be a HTTP GET request, not POST.
 
 
 ## [1.2.0] - 2023-03-22

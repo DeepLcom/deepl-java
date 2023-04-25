@@ -247,7 +247,7 @@ public class Translator {
    * @throws DeepLException If any error occurs while communicating with the DeepL API.
    */
   public Usage getUsage() throws DeepLException, InterruptedException {
-    HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/usage");
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff("/v2/usage");
     checkResponse(response, false, false);
     return jsonParser.parseUsage(response.getBody());
   }
