@@ -3,9 +3,6 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import com.deepl.api.http.HttpResponse;
 import com.deepl.api.http.HttpResponseStream;
 import com.deepl.api.parsing.Parser;
@@ -1026,11 +1023,7 @@ public class Translator {
   }
 
   private int calculateDocumentWaitTimeMillis(Long secondsRemaining) {
-    if (secondsRemaining != null) {
-      double secs = ((double) secondsRemaining) / 2.0 + 1.0;
-      secs = max(1.0, min(secs, 60.0));
-      return (int) (secs * 1000);
-    }
-    return 1000;
+    // secondsRemaining is currently unreliable, so just poll equidistantly
+    return 5000;
   }
 }

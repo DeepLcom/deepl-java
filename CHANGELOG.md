@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased 
+### Fixed
+* Changed document translation to poll the server every 5 seconds. This should greatly reduce observed document translation processing time.
+
+
 ## [1.2.0] - 2023-03-22
 ### Added
 * Script to check our source code for license headers and a step for them in the CI.
@@ -78,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.2.0...HEAD
 [1.2.0]: https://github.com/DeepLcom/deepl-java/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/DeepLcom/deepl-java/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/DeepLcom/deepl-java/compare/v1.0.0...v1.0.1
