@@ -29,7 +29,7 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:4.11.0")
 
 //    implementation("com.google.guava:guava:30.1.1-jre")
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 
