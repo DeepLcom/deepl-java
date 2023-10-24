@@ -10,7 +10,7 @@ include:
 # Global --------------------------
 
 # Use 17 (LTS) as base
-image: ${CI_REGISTRY_IMAGE}/eclipse-temurin:17-alpine
+image: eclipse-temurin:17-alpine
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
@@ -116,7 +116,7 @@ build_manual:
         USE_MOCK_SERVER: "use mock server"
       - DOCKER_IMAGE: "eclipse-temurin:19-alpine"
         USE_MOCK_SERVER: "use mock server"
-  image: ${CI_REGISTRY_IMAGE}/${DOCKER_IMAGE}
+  image: ${DOCKER_IMAGE}
   script:
     - >
       if [[ ! -z "${USE_MOCK_SERVER}" ]]; then
@@ -158,7 +158,7 @@ test_manual:
       - DOCKER_IMAGE: "maven:3.9-sapmachine-17"
       - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-8-focal"
       - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-18-alpine"
-  image: ${CI_REGISTRY_IMAGE}/${DOCKER_IMAGE}
+  image: ${DOCKER_IMAGE}
   script:
     - cd examples/maven/deepl-test-app
     - mvn install -B -PbuildProject -l mvn_build.log
