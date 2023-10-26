@@ -103,6 +103,8 @@ build_manual:
 .test_base:
   stage: test
   extends: .test
+  variables:
+    KUBERNETES_MEMORY_LIMIT: 8Gi
   parallel:
     matrix:
       - DOCKER_IMAGE: "eclipse-temurin:18-alpine"
