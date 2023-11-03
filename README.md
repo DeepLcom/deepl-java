@@ -159,6 +159,11 @@ a `TextTranslationOptions`, with the following setters:
   returned by glossary lookup functions, for example `listGlossaries()`).
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
+- `setContext()`: specifies additional context to influence translations, that is not
+  translated itself. Note this is an **alpha feature**: it may be deprecated at
+  any time, or incur charges if it becomes generally available.
+  See the [API documentation][api-docs-context-param] for more information and
+  example usage.
 - `setTagHandling()`: type of tags to parse before translation, options are
   `"html"` and `"xml"`.
 
@@ -622,6 +627,8 @@ tests using `./gradlew test` with the `DEEPL_MOCK_SERVER_PORT` and
 `DEEPL_SERVER_URL` environment variables defined referring to the mock-server.
 
 [api-docs]: https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-java-readme
+
+[api-docs-context-param]: https://www.deepl.com/docs-api/translating-text/?utm_source=github&utm_medium=github-java-readme
 
 [api-docs-csv-format]: https://www.deepl.com/docs-api/managing-glossaries/supported-glossary-formats/?utm_source=github&utm_medium=github-java-readme
 

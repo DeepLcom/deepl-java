@@ -187,6 +187,22 @@ public class TranslateTextTest extends TestBase {
   }
 
   @Test
+  void testContext() throws DeepLException, InterruptedException {
+    // In German, "scharf" can mean:
+    //  - spicy/hot when referring to food, or
+    //  - sharp when referring to other objects such as a knife (Messer).
+    Translator translator = createTranslator();
+    String text = "Das ist scharf!";
+
+    translator.translateText(text, null, "de");
+    // Result: "That is hot!"
+
+    translator.translateText(
+        text, null, "de", new TextTranslationOptions().setContext("Das ist ein Messer."));
+    // Result: "That is sharp!"
+  }
+
+  @Test
   void testSplitSentences() throws DeepLException, InterruptedException {
     Assumptions.assumeTrue(isMockServer);
 

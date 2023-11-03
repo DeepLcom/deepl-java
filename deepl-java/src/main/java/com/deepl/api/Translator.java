@@ -803,6 +803,9 @@ public class Translator {
       if (options.isPreserveFormatting()) {
         params.add(new KeyValuePair<>("preserve_formatting", "1"));
       }
+      if (options.getContext() != null) {
+        params.add(new KeyValuePair<>("context", options.getContext()));
+      }
       if (options.getTagHandling() != null) {
         params.add(new KeyValuePair<>("tag_handling", options.getTagHandling()));
       }
