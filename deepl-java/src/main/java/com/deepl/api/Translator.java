@@ -447,7 +447,7 @@ public class Translator {
     try (FileInputStream inputStream = new FileInputStream(inputFile)) {
       HttpResponse response =
           httpClientWrapper.uploadWithBackoff(
-              "/v2/document/", params, inputFile.getName(), inputStream);
+              "/v2/document", params, inputFile.getName(), inputStream);
       checkResponse(response, false, false);
       return jsonParser.parseDocumentHandle(response.getBody());
     }
