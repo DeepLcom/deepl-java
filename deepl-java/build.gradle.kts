@@ -2,7 +2,7 @@ plugins {
     `java-library`
     `maven-publish`
     signing
-    id("com.diffplug.spotless") version "6.8.0"
+    id("com.diffplug.spotless") version "6.23.3"
 }
 
 group = "com.deepl.api"
