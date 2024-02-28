@@ -48,6 +48,7 @@ public class TestBase {
     }
 
     exampleText = new HashMap<>();
+    exampleText.put("ar", "شعاع البروتون");
     exampleText.put("bg", "протонен лъч");
     exampleText.put("cs", "protonový paprsek");
     exampleText.put("da", "protonstråle");
