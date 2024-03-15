@@ -152,14 +152,16 @@ test_manual:
 .test_examples_base:
   stage: test
   extends: .test
+  variables:
+    MAVEN_OPTS: -Dmaven.repo.local=.m2/repository
   parallel:
     matrix:
-      - DOCKER_IMAGE: "maven:3.8"
+      - DOCKER_IMAGE: "maven:3.9"
       - DOCKER_IMAGE: "maven:3.8-openjdk-18-slim"
       - DOCKER_IMAGE: "maven:3.8-openjdk-8-slim"
       - DOCKER_IMAGE: "maven:3.9-sapmachine-17"
-      - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-8-focal"
-      - DOCKER_IMAGE: "maven:3.8-eclipse-temurin-18-alpine"
+      - DOCKER_IMAGE: "maven:3.9-eclipse-temurin-8"
+      - DOCKER_IMAGE: "maven:3.9-eclipse-temurin-21"
   image: ${DOCKER_IMAGE}
   script:
     - cd examples/maven/deepl-test-app
