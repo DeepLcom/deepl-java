@@ -65,9 +65,9 @@ public class TextTranslationOptions {
   }
 
   /**
-   * Specifies additional context to influence translations, that is not translated itself. Note:
-   * this is an alpha feature: it may be deprecated at any time, or incur charges if it becomes
-   * generally available. See the API documentation for more information and example usage.
+   * Specifies additional context to influence translations, that is not translated itself.
+   * Characters in the `context` parameter are not counted toward billing.
+   * See the API documentation for more information and example usage.
    */
   public TextTranslationOptions setContext(String context) {
     this.context = context;

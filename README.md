@@ -160,8 +160,7 @@ a `TextTranslationOptions`, with the following setters:
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
 - `setContext()`: specifies additional context to influence translations, that is not
-  translated itself. Note this is an **alpha feature**: it may be deprecated at
-  any time, or incur charges if it becomes generally available.
+  translated itself. Characters in the `context` parameter are not counted toward billing.  
   See the [API documentation][api-docs-context-param] for more information and
   example usage.
 - `setTagHandling()`: type of tags to parse before translation, options are
