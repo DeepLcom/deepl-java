@@ -60,6 +60,26 @@ class GeneralTest extends TestBase {
   }
 
   @Test
+  void testMixedDirectionText() throws DeepLException, InterruptedException {
+    Assumptions.assumeFalse(isMockServer);
+    Translator translator = createTranslator();
+    TextTranslationOptions options =
+        new TextTranslationOptions().setTagHandling("xml").setIgnoreTags(Arrays.asList("xml"));
+    String arIgnorePart = "<ignore>يجب تجاهل هذا الجزء.</ignore>";
+    String enSentenceWithArIgnorePart =
+        "<p>This is a <b>short</b> <i>sentence</i>. " + arIgnorePart + " This is another sentence.";
+    String enIgnorePart = "<ignore>This part should be ignored.</ignore>";
+    String arSentenceWithEnIgnorePart =
+        "<p>هذه <i>جملة</i> <b>قصيرة</b>. " + enIgnorePart + "هذه جملة أخرى.</p>";
+
+    TextResult enResult =
+        translator.translateText(enSentenceWithArIgnorePart, null, "en-US", options);
+    Assertions.assertTrue(enResult.getText().contains(arIgnorePart));
+    TextResult arResult = translator.translateText(arSentenceWithEnIgnorePart, null, "ar", options);
+    Assertions.assertTrue(arResult.getText().contains(enIgnorePart));
+  }
+
+  @Test
   void testUsage() throws DeepLException, InterruptedException {
     Translator translator = createTranslator();
     Usage usage = translator.getUsage();

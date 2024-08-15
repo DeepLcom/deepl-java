@@ -18,6 +18,7 @@ public class TextTranslationOptions {
   private String glossaryId;
   private SentenceSplittingMode sentenceSplittingMode;
   private boolean preserveFormatting = false;
+  private String context;
   private String tagHandling;
   private boolean outlineDetection = true;
   private Iterable<String> ignoreTags;
@@ -60,6 +61,16 @@ public class TextTranslationOptions {
    */
   public TextTranslationOptions setGlossary(String glossaryId) {
     this.glossaryId = glossaryId;
+    return this;
+  }
+
+  /**
+   * Specifies additional context to influence translations, that is not translated itself.
+   * Characters in the `context` parameter are not counted toward billing. See the API documentation
+   * for more information and example usage.
+   */
+  public TextTranslationOptions setContext(String context) {
+    this.context = context;
     return this;
   }
 
@@ -149,6 +160,11 @@ public class TextTranslationOptions {
   /** Gets the current preserve formatting setting. */
   public boolean isPreserveFormatting() {
     return preserveFormatting;
+  }
+
+  /** Gets the current context. */
+  public String getContext() {
+    return context;
   }
 
   /** Gets the current tag handling setting. */

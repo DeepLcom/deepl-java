@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.deepl.api"
-version = "1.3.0"
+version = "1.5.0"
 
 val sharedManifest = the<JavaPluginConvention>().manifest {
     attributes (
@@ -25,11 +25,10 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains:annotations:20.1.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
-
 //    implementation("com.google.guava:guava:30.1.1-jre")
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 

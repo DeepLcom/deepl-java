@@ -31,7 +31,7 @@ Java 1.8 or later.
 Add this dependency to your project's build file:
 
 ```
-implementation "com.deepl.api:deepl-java:1.3.0"
+implementation "com.deepl.api:deepl-java:1.5.0"
 ```
 
 ### Maven users
@@ -42,7 +42,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>com.deepl.api</groupId>
   <artifactId>deepl-java</artifactId>
-  <version>1.3.0</version>
+  <version>1.5.0</version>
 </dependency>
 ```
 
@@ -159,6 +159,10 @@ a `TextTranslationOptions`, with the following setters:
   returned by glossary lookup functions, for example `listGlossaries()`).
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
+- `setContext()`: specifies additional context to influence translations, that is not
+  translated itself. Characters in the `context` parameter are not counted toward billing.  
+  See the [API documentation][api-docs-context-param] for more information and
+  example usage.
 - `setTagHandling()`: type of tags to parse before translation, options are
   `"html"` and `"xml"`.
 
@@ -622,6 +626,8 @@ tests using `./gradlew test` with the `DEEPL_MOCK_SERVER_PORT` and
 `DEEPL_SERVER_URL` environment variables defined referring to the mock-server.
 
 [api-docs]: https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-java-readme
+
+[api-docs-context-param]: https://www.deepl.com/docs-api/translating-text/?utm_source=github&utm_medium=github-java-readme
 
 [api-docs-csv-format]: https://www.deepl.com/docs-api/managing-glossaries/supported-glossary-formats/?utm_source=github&utm_medium=github-java-readme
 

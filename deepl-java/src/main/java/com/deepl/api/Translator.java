@@ -82,7 +82,7 @@ public class Translator {
    */
   private String constructUserAgentString(boolean sendPlatformInfo, AppInfo appInfo) {
     StringBuilder sb = new StringBuilder();
-    sb.append("deepl-java/1.3.0");
+    sb.append("deepl-java/1.5.0");
     if (sendPlatformInfo) {
       sb.append(" (");
       Properties props = System.getProperties();
@@ -447,7 +447,7 @@ public class Translator {
     try (FileInputStream inputStream = new FileInputStream(inputFile)) {
       HttpResponse response =
           httpClientWrapper.uploadWithBackoff(
-              "/v2/document/", params, inputFile.getName(), inputStream);
+              "/v2/document", params, inputFile.getName(), inputStream);
       checkResponse(response, false, false);
       return jsonParser.parseDocumentHandle(response.getBody());
     }
@@ -802,6 +802,9 @@ public class Translator {
       }
       if (options.isPreserveFormatting()) {
         params.add(new KeyValuePair<>("preserve_formatting", "1"));
+      }
+      if (options.getContext() != null) {
+        params.add(new KeyValuePair<>("context", options.getContext()));
       }
       if (options.getTagHandling() != null) {
         params.add(new KeyValuePair<>("tag_handling", options.getTagHandling()));

@@ -11,6 +11,9 @@ import java.util.*;
  * Translator#getSourceLanguages()} and {@link Translator#getTargetLanguages()}.
  */
 public class LanguageCode {
+  /** Arabic (MSA) language code, may be used as source or target language */
+  public static final String Arabic = "ar";
+
   /** Bulgarian language code, may be used as source or target language. */
   public static final String Bulgarian = "bg";
 
