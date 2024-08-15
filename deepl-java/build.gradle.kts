@@ -26,7 +26,8 @@ repositories {
 dependencies {
     implementation("org.jetbrains:annotations:20.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+
 //    implementation("com.google.guava:guava:30.1.1-jre")
     implementation("com.google.code.gson:gson:2.10.1")
 }
