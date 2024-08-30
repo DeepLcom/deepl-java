@@ -25,8 +25,8 @@ class UsageDeserializer implements JsonDeserializer<Usage> {
   }
 
   public static @Nullable Usage.Detail createDetail(JsonObject jsonObject, String prefix) {
-    Integer count = Parser.getAsIntOrNull(jsonObject, prefix + "count");
-    Integer limit = Parser.getAsIntOrNull(jsonObject, prefix + "limit");
+    Long count = Parser.getAsLongOrNull(jsonObject, prefix + "count");
+    Long limit = Parser.getAsLongOrNull(jsonObject, prefix + "limit");
     if (count == null || limit == null) return null;
     return new Usage.Detail(count, limit);
   }
