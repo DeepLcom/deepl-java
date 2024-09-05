@@ -12,9 +12,9 @@ public class SessionOptions {
   // Mock server session options
   public Integer noResponse;
   public Integer respondWith429;
-  public Integer initCharacterLimit;
-  public Integer initDocumentLimit;
-  public Integer initTeamDocumentLimit;
+  public Long initCharacterLimit;
+  public Long initDocumentLimit;
+  public Long initTeamDocumentLimit;
   public Integer documentFailure;
   public Duration documentQueueTime;
   public Duration documentTranslateTime;
@@ -76,17 +76,17 @@ public class SessionOptions {
     return this;
   }
 
-  public SessionOptions setInitCharacterLimit(int initCharacterLimit) {
+  public SessionOptions setInitCharacterLimit(long initCharacterLimit) {
     this.initCharacterLimit = initCharacterLimit;
     return this;
   }
 
-  public SessionOptions setInitDocumentLimit(int initDocumentLimit) {
+  public SessionOptions setInitDocumentLimit(long initDocumentLimit) {
     this.initDocumentLimit = initDocumentLimit;
     return this;
   }
 
-  public SessionOptions setInitTeamDocumentLimit(int initTeamDocumentLimit) {
+  public SessionOptions setInitTeamDocumentLimit(long initTeamDocumentLimit) {
     this.initTeamDocumentLimit = initTeamDocumentLimit;
     return this;
   }

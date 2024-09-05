@@ -87,6 +87,21 @@ class GeneralTest extends TestBase {
   }
 
   @Test
+  void testUsageLarge() throws DeepLException, InterruptedException {
+    Assumptions.assumeTrue(isMockServer);
+    SessionOptions sessionOptions = new SessionOptions();
+    sessionOptions.initCharacterLimit = 1000000000000L;
+    Map<String, String> headers = sessionOptions.createSessionHeaders();
+
+    TranslatorOptions options = new TranslatorOptions().setHeaders(headers).setServerUrl(serverUrl);
+    String authKeyWithUuid = authKey + "/" + UUID.randomUUID().toString();
+    Translator translator = new Translator(authKeyWithUuid, options);
+    Usage usage = translator.getUsage();
+    Assertions.assertNotNull(usage.getCharacter());
+    Assertions.assertEquals(sessionOptions.initCharacterLimit, usage.getCharacter().getLimit());
+  }
+
+  @Test
   void testGetSourceAndTargetLanguages() throws DeepLException, InterruptedException {
     Translator translator = createTranslator();
     List<Language> sourceLanguages = translator.getSourceLanguages();
