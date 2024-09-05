@@ -76,6 +76,11 @@ public class Parser {
     return jsonObject.get(parameterName).getAsInt();
   }
 
+  static @Nullable Long getAsLongOrNull(JsonObject jsonObject, String parameterName) {
+    if (!jsonObject.has(parameterName)) return null;
+    return jsonObject.get(parameterName).getAsLong();
+  }
+
   static @Nullable String getAsStringOrNull(JsonObject jsonObject, String parameterName) {
     if (!jsonObject.has(parameterName)) return null;
     return jsonObject.get(parameterName).getAsString();
