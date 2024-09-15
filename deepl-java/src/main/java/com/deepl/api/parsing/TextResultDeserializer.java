@@ -18,6 +18,7 @@ class TextResultDeserializer implements JsonDeserializer<TextResult> {
     JsonObject jsonObject = json.getAsJsonObject();
     return new TextResult(
         jsonObject.get("text").getAsString(),
-        jsonObject.get("detected_source_language").getAsString());
+        jsonObject.get("detected_source_language").getAsString(),
+        jsonObject.get("billed_characters").getAsInt());
   }
 }

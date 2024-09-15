@@ -96,9 +96,10 @@ There are additional optional arguments to control translation, see
 [Text translation options](#text-translation-options) below.
 
 `translateText()` returns a `TextResult`, or a List of `TextResult`s
-corresponding to your input text(s). `TextResult` has two accessors: `getText()`
-returns the translated text, and `getDetectedSourceLanguage()` returns the
-detected source language code.
+corresponding to your input text(s). `TextResult` has the following accessors:
+- `getText()` returns the translated text,
+- `getDetectedSourceLanguage()` returns the detected source language code, and
+- `getBilledCharacters()` returns the number of characters billed for the text.
 
 ```java
 class Example {  // Continuing class Example from above
@@ -115,8 +116,10 @@ class Example {  // Continuing class Example from above
                                          "en-GB");
         System.out.println(results.get(0).getText()); // "How are you?"
         System.out.println(results.get(0).getDetectedSourceLanguage()); // "ja" the language code for Japanese
+        System.out.println(results.get(0).getBilledCharacters()); // 7 - the number of characters in the source text "お元気ですか？"
         System.out.println(results.get(1).getText()); // "How are you?"
         System.out.println(results.get(1).getDetectedSourceLanguage()); // "es" the language code for Spanish
+        System.out.println(results.get(1).getBilledCharacters()); // 12 - the number of characters in the source text "¿Cómo estás?"
 
         // Translate into German with less and more Formality:
         System.out.println(translator.translateText("How are you?",

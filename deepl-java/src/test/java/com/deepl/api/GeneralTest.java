@@ -45,6 +45,7 @@ class GeneralTest extends TestBase {
       String sourceLang = LanguageCode.removeRegionalVariant(entry.getKey());
       TextResult result = translator.translateText(inputText, sourceLang, "en-US");
       Assertions.assertTrue(result.getText().toLowerCase(Locale.ENGLISH).contains("proton"));
+      Assertions.assertEquals(inputText.length(), result.getBilledCharacters());
     }
   }
 

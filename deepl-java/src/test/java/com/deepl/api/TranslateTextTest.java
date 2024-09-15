@@ -17,6 +17,7 @@ public class TranslateTextTest extends TestBase {
     TextResult result = translator.translateText(exampleText.get("en"), null, LanguageCode.German);
     Assertions.assertEquals(exampleText.get("de"), result.getText());
     Assertions.assertEquals("en", result.getDetectedSourceLanguage());
+    Assertions.assertEquals(exampleText.get("en").length(), result.getBilledCharacters());
   }
 
   @Test

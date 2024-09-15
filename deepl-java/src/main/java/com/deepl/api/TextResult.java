@@ -7,11 +7,13 @@ package com.deepl.api;
 public class TextResult {
   private final String text;
   private final String detectedSourceLanguage;
+  private final int billedCharacters;
 
   /** Constructs a new instance. */
-  public TextResult(String text, String detectedSourceLanguage) {
+  public TextResult(String text, String detectedSourceLanguage, int billedCharacters) {
     this.text = text;
     this.detectedSourceLanguage = LanguageCode.standardize(detectedSourceLanguage);
+    this.billedCharacters = billedCharacters;
   }
 
   /** The translated text. */
@@ -22,5 +24,10 @@ public class TextResult {
   /** The language code of the source text detected by DeepL. */
   public String getDetectedSourceLanguage() {
     return detectedSourceLanguage;
+  }
+
+  /** Number of characters billed for this text. */
+  public int getBilledCharacters() {
+    return billedCharacters;
   }
 }
