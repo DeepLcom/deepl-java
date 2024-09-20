@@ -109,6 +109,20 @@ public class Translator {
   }
 
   /**
+   * Functions the same as {@link Translator#translateText(String, String, String,
+   * TextTranslationOptions)} but sourceLang is auto-detected.
+   */
+  public TextResult translateText(
+          String text,
+          String targetLang,
+          @Nullable TextTranslationOptions options)
+          throws InterruptedException, DeepLException {
+    ArrayList<String> texts = new ArrayList<>();
+    texts.add(text);
+    return translateText(texts, null, targetLang, options).get(0);
+  }
+
+  /**
    * Translate specified text from source language into target language.
    *
    * @param text Text to translate; must not be empty.
