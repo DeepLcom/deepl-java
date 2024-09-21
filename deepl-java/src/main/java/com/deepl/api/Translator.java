@@ -171,6 +171,20 @@ public class Translator {
 
   /**
    * Functions the same as {@link Translator#translateText(String, String, String,
+   * TextTranslationOptions)} but accepts {@link Language} objects for target language and sourceLang is auto-detected.
+   *
+   * @see Translator#translateText(String, String, String, TextTranslationOptions)
+   */
+  public TextResult translateText(
+          String text,
+          Language targetLang,
+          @Nullable TextTranslationOptions options)
+          throws DeepLException, InterruptedException {
+    return translateText(text, null, targetLang.getCode(), options);
+  }
+
+  /**
+   * Functions the same as {@link Translator#translateText(String, String, String,
    * TextTranslationOptions)} but accepts {@link Language} objects for source and target languages.
    *
    * @see Translator#translateText(String, String, String, TextTranslationOptions)
