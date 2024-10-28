@@ -113,10 +113,8 @@ public class Translator {
    * TextTranslationOptions)} but sourceLang is auto-detected.
    */
   public TextResult translateText(
-          String text,
-          String targetLang,
-          @Nullable TextTranslationOptions options)
-          throws InterruptedException, DeepLException {
+      String text, String targetLang, @Nullable TextTranslationOptions options)
+      throws InterruptedException, DeepLException {
     ArrayList<String> texts = new ArrayList<>();
     texts.add(text);
     return translateText(texts, null, targetLang, options).get(0);
@@ -171,15 +169,14 @@ public class Translator {
 
   /**
    * Functions the same as {@link Translator#translateText(String, String, String,
-   * TextTranslationOptions)} but accepts {@link Language} objects for target language and sourceLang is auto-detected.
+   * TextTranslationOptions)} but accepts {@link Language} objects for target language and
+   * sourceLang is auto-detected.
    *
    * @see Translator#translateText(String, String, String, TextTranslationOptions)
    */
   public TextResult translateText(
-          String text,
-          Language targetLang,
-          @Nullable TextTranslationOptions options)
-          throws DeepLException, InterruptedException {
+      String text, Language targetLang, @Nullable TextTranslationOptions options)
+      throws DeepLException, InterruptedException {
     return translateText(text, null, targetLang.getCode(), options);
   }
 
