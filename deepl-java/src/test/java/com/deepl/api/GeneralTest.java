@@ -3,8 +3,6 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
-import static org.mockito.Mockito.*;
-
 import java.io.*;
 import java.net.*;
 import java.time.*;
@@ -13,6 +11,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
@@ -47,6 +46,25 @@ class GeneralTest extends TestBase {
       Assertions.assertTrue(result.getText().toLowerCase(Locale.ENGLISH).contains("proton"));
       Assertions.assertEquals(inputText.length(), result.getBilledCharacters());
     }
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "quality_optimized,quality_optimized",
+    "prefer_quality_optimized,quality_optimized",
+    "latency_optimized,latency_optimized"
+  })
+  void testModelType(String modelTypeArg, String expectedModelType)
+      throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String sourceLang = "de";
+    TextResult result =
+        translator.translateText(
+            exampleText.get(sourceLang),
+            sourceLang,
+            "en-US",
+            new TextTranslationOptions().setModelType(modelTypeArg));
+    Assertions.assertEquals(expectedModelType, result.getModelTypeUsed());
   }
 
   @Test

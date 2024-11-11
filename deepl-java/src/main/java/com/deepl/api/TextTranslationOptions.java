@@ -20,6 +20,7 @@ public class TextTranslationOptions {
   private boolean preserveFormatting = false;
   private String context;
   private String tagHandling;
+  private String modelType;
   private boolean outlineDetection = true;
   private Iterable<String> ignoreTags;
   private Iterable<String> nonSplittingTags;
@@ -107,6 +108,20 @@ public class TextTranslationOptions {
   }
 
   /**
+   * Set the type of model to use for a text translation. Currently supported values: <code>
+   * "quality_optimized"</code> use a translation model that maximizes translation quality, at the
+   * cost of response time. This option may be unavailable for some language pairs and the API would
+   * respond with an error in this case; <code>"prefer_quality_optimized"</code> use the
+   * highest-quality translation model for the given language pair; <code>"latency_optimized"
+   * </code> use a translation model that minimizes response time, at the cost of translation
+   * quality.
+   */
+  public TextTranslationOptions setModelType(String modelType) {
+    this.modelType = modelType;
+    return this;
+  }
+
+  /**
    * Sets whether outline detection is used; set to <code>false</code> to disable automatic tag
    * detection, default is <code>true</code>.
    */
@@ -165,6 +180,11 @@ public class TextTranslationOptions {
   /** Gets the current context. */
   public String getContext() {
     return context;
+  }
+
+  /** Gets the current model type. */
+  public String getModelType() {
+    return modelType;
   }
 
   /** Gets the current tag handling setting. */

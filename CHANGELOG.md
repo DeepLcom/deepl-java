@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Unreleased
+### Added
+* Added `modelType` option to `translateText()` to use models with higher
+  translation quality (available for some language pairs), or better latency.
+  Options are `'quality_optimized'`, `'latency_optimized'`, and  `'prefer_quality_optimized'`
+* Added the `modelTypeUsed` field to `translateText()` response, that
+  indicates the translation model used when the `modelType` option is
+  specified.
+
+
 ## [1.6.0] - 2024-09-17
 ### Added
 * Added `getBilledCharacters()` to text translation response.

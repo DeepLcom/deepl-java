@@ -98,8 +98,9 @@ There are additional optional arguments to control translation, see
 `translateText()` returns a `TextResult`, or a List of `TextResult`s
 corresponding to your input text(s). `TextResult` has the following accessors:
 - `getText()` returns the translated text,
-- `getDetectedSourceLanguage()` returns the detected source language code, and
-- `getBilledCharacters()` returns the number of characters billed for the text.
+- `getDetectedSourceLanguage()` returns the detected source language code,
+- `getBilledCharacters()` returns the number of characters billed for the text, and
+- `getModelTypeUsed()` returns the model type used for the translation.
 
 ```java
 class Example {  // Continuing class Example from above
@@ -166,6 +167,13 @@ a `TextTranslationOptions`, with the following setters:
   translated itself. Characters in the `context` parameter are not counted toward billing.  
   See the [API documentation][api-docs-context-param] for more information and
   example usage.
+- `model_type`: specifies the type of translation model to use, options are:
+  - `'quality_optimized'`: use a translation model that maximizes translation quality,
+    at the cost of response time. This option may be unavailable for some language pairs.
+  - `'prefer_quality_optimized'`: use the highest-quality translation model for the given
+    language pair.
+  - `'latency_optimized'`: use a translation model that minimizes response time, at the
+    cost of translation quality.
 - `setTagHandling()`: type of tags to parse before translation, options are
   `"html"` and `"xml"`.
 

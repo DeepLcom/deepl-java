@@ -808,6 +808,9 @@ public class Translator {
       if (options.getContext() != null) {
         params.add(new KeyValuePair<>("context", options.getContext()));
       }
+      if (options.getModelType() != null) {
+        params.add(new KeyValuePair<>("model_type", options.getModelType()));
+      }
       if (options.getTagHandling() != null) {
         params.add(new KeyValuePair<>("tag_handling", options.getTagHandling()));
       }
