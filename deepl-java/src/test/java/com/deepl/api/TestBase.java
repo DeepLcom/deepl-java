@@ -90,6 +90,7 @@ public class TestBase {
     tempDir = createTempDir();
   }
 
+  // TODO: Delete `createTranslator` methods, replace with `createDeepLClient`
   protected Translator createTranslator() {
     SessionOptions sessionOptions = new SessionOptions();
     return createTranslator(sessionOptions);
@@ -117,6 +118,40 @@ public class TestBase {
 
     try {
       return new Translator(authKey, translatorOptions);
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+      System.exit(1);
+      return null;
+    }
+  }
+
+  protected DeepLClient createDeepLClient() {
+    SessionOptions sessionOptions = new SessionOptions();
+    return createDeepLClient(sessionOptions);
+  }
+
+  protected DeepLClient createDeepLClient(SessionOptions sessionOptions) {
+    TranslatorOptions translatorOptions = new TranslatorOptions();
+    return createDeepLClient(sessionOptions, translatorOptions);
+  }
+
+  protected DeepLClient createDeepLClient(
+      SessionOptions sessionOptions, TranslatorOptions translatorOptions) {
+    Map<String, String> headers = sessionOptions.createSessionHeaders();
+
+    if (translatorOptions.getServerUrl() == null) {
+      translatorOptions.setServerUrl(serverUrl);
+    }
+
+    if (translatorOptions.getHeaders() != null) {
+      headers.putAll(translatorOptions.getHeaders());
+    }
+    translatorOptions.setHeaders(headers);
+
+    String authKey = sessionOptions.randomAuthKey ? UUID.randomUUID().toString() : TestBase.authKey;
+
+    try {
+      return new DeepLClient(authKey, translatorOptions);
     } catch (IllegalArgumentException e) {
       e.printStackTrace();
       System.exit(1);

@@ -17,7 +17,10 @@ import org.jetbrains.annotations.Nullable;
  *      TranslatorOptions options = new TranslatorOptions()
  *          .setTimeout(Duration.ofSeconds(1)).setMaxRetries(2);
  * </code>
+ *
+ * @deprecated Use {@link DeepLClientOptions} instead.
  */
+@Deprecated
 public class TranslatorOptions {
   private int maxRetries = 5;
   private Duration timeout = Duration.ofSeconds(10);

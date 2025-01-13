@@ -3,11 +3,11 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.deepl.api/deepl-java.svg)](https://mvnrepository.com/artifact/com.deepl.api/deepl-java)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blueviolet.svg)](https://github.com/DeepLcom/deepl-java/blob/main/LICENSE)
 
-The [DeepL API][api-docs] is a language translation API that allows other
-computer programs to send texts and documents to DeepL's servers and receive
-high-quality translations. This opens a whole universe of opportunities for
-developers: any translation product you can imagine can now be built on top of
-DeepL's best-in-class translation technology.
+The [DeepL API][api-docs] is a language AI API that allows other computer programs
+to send texts and documents to DeepL's servers and receive high-quality
+translations and improvements to the text. This opens a whole universe of
+opportunities for developers: any translation product you can imagine can now
+be built on top of DeepL's best-in-class translation technology.
 
 The DeepL Java library offers a convenient way for applications written in Java
 to interact with the DeepL API. We intend to support all API functions with the
@@ -18,7 +18,7 @@ they’re added to the API.
 
 To use the DeepL Java Library, you'll need an API authentication key. To get a
 key, [please create an account here][create-account]. With a DeepL API Free
-account you can translate up to 500,000 characters/month for free.
+account you can consume up to 500,000 characters/month for free.
 
 ## Requirements
 
@@ -48,7 +48,7 @@ Add this dependency to your project's POM:
 
 ## Usage
 
-Import the package and construct a `Translator`. The first argument is a string
+Import the package and construct a `DeepLClient`. The first argument is a string
 containing your API authentication key as found in your
 [DeepL Pro Account][pro-account].
 
@@ -58,13 +58,13 @@ Be careful not to expose your key, for example when sharing source code.
 import com.deepl.api.*;
 
 class Example {
-    Translator translator;
+    DeepLClient client;
 
     public Example() throws Exception {
         String authKey = "f63c02c5-f056-...";  // Replace with your key
-        translator = new Translator(authKey);
+        client = new DeepLClient(authKey);
         TextResult result =
-                translator.translateText("Hello, world!", null, "fr");
+                client.translateText("Hello, world!", null, "fr");
         System.out.println(result.getText()); // "Bonjour, le monde !"
     }
 }
@@ -74,7 +74,7 @@ This example is for demonstration purposes only. In production code, the
 authentication key should not be hard-coded, but instead fetched from a
 configuration file or environment variable.
 
-`Translator` accepts additional options, see [Configuration](#configuration)
+`DeepLClient` accepts additional options, see [Configuration](#configuration)
 for more information.
 
 ### Translating text
@@ -107,12 +107,12 @@ class Example {  // Continuing class Example from above
     public void textTranslationExamples() throws Exception {
         // Translate text into a target language, in this case, French:
         TextResult result =
-                translator.translateText("Hello, world!", null, "fr");
+                client.translateText("Hello, world!", null, "fr");
         System.out.println(result.getText()); // "Bonjour, le monde !"
 
         // Translate multiple texts into British English
         List<TextResult> results =
-                translator.translateText(List.of("お元気ですか？", "¿Cómo estás?"),
+                client.translateText(List.of("お元気ですか？", "¿Cómo estás?"),
                                          null,
                                          "en-GB");
         System.out.println(results.get(0).getText()); // "How are you?"
@@ -123,12 +123,12 @@ class Example {  // Continuing class Example from above
         System.out.println(results.get(1).getBilledCharacters()); // 12 - the number of characters in the source text "¿Cómo estás?"
 
         // Translate into German with less and more Formality:
-        System.out.println(translator.translateText("How are you?",
+        System.out.println(client.translateText("How are you?",
                                                     null,
                                                     "de",
                                                     new TextTranslationOptions().setFormality(
                                                             Formality.Less)).getText());  // 'Wie geht es dir?'
-        System.out.println(translator.translateText("How are you?",
+        System.out.println(client.translateText("How are you?",
                                                     null,
                                                     "de",
                                                     new TextTranslationOptions().setFormality(
@@ -193,6 +193,60 @@ The following options are only used if `setTagHandling()` is set to `'xml'`:
 For a detailed explanation of the XML handling options, see the
 [API documentation][api-docs-xml-handling].
 
+### Improving text (Write API)
+
+You can use the Write API to improve or rephrase text. This is implemented in
+the `rephraseText()` method. The first argument is a string containing the text
+you want to translate, or a list of strings if you want to translate multiple texts.
+
+`targetLang` optionally specifies the target language, e.g. when you want to change
+the variant of a text (for example, you can send an english text to the write API and
+use `targetLang` to turn it into British or American English). Please note that the
+Write API itself does NOT translate. If you wish to translate and improve a text, you
+will need to make multiple calls in a chain.
+
+Language codes are the same as for translating text.
+
+Example call:
+
+```java
+WriteResult result = client.rephraseText("A rainbouw has seven colours.", "EN-US", null);
+System.out.println(result.getText);
+```
+
+Additionally, you can optionally specify a style OR a tone (not both at once) that the
+improvement should be in. The following styles are supported (`default` will be used if
+nothing is selected):
+
+- `academic`
+- `business`
+- `casual`
+- `default`
+- `simple`
+
+The following tones are supported (`default` will be used if nothing is selected):
+
+- `confident`
+- `default`
+- `diplomatic`
+- `enthusiastic`
+- `friendly`
+
+You can also prefix any non-default style or tone with `prefer_` (`prefer_academic`, etc.),
+in which case the style/tone will only be applied if the language supports it. If you do not
+use `prefer_`, requests with `targetLang`s or detected languages that do not support
+styles and tones will fail. The current list of supported languages can be found in our
+[API documentation][api-docs]. We plan to also expose this information via an API endpoint
+in the future.
+
+You can use the predefined constants in the library to use a style:
+
+```java
+TextRephraseOptions options = (new TextRephraseOptions()).setWritingStyle(WritingStyle.Business.getValue());
+WriteResult result = client.rephraseText("A rainbouw has seven colours.", "EN-US", options);
+System.out.println(result.getText);
+```
+
 ### Translating documents
 
 To translate documents, call `translateDocument()` File objects. The first and
@@ -211,7 +265,7 @@ class Example {  // Continuing class Example from above
         File inputFile = new File("/path/to/Instruction Manual.docx");
         File outputFile = new File("/path/to/Bedienungsanleitung.docx");
         try {
-            translator.translateDocument(inputFile, outputFile, "en", "de");
+            client.translateDocument(inputFile, outputFile, "en", "de");
         } catch (DocumentTranslationException exception) {
             // If an error occurs during document translation after the document was
             // already uploaded, a DocumentTranslationException is thrown. The
@@ -281,7 +335,7 @@ class Example {  // Continuing class Example from above
             put("prize", "Gewinn");
         }};
         GlossaryInfo myGlossary =
-                translator.createGlossary("My glossary", "en", "de", entries);
+                client.createGlossary("My glossary", "en", "de", entries);
 
         System.out.printf("Created '%s' (%s) %s->%s containing %d entries\n",
                           myGlossary.getName(),
@@ -307,7 +361,7 @@ class Example {  // Continuing class Example from above
     public createGlossaryFromCsvExample() throws Exception {
         File csvFile = new File("/path/to/glossary_file.csv");
         GlossaryInfo myGlossary =
-                translator.createGlossaryFromCsv("My glossary",
+                client.createGlossaryFromCsv("My glossary",
                                                  "en",
                                                  "de",
                                                  csvFile);
@@ -335,13 +389,13 @@ class Example {  // Continuing class Example from above
     public getListDeleteGlossaryExamples() throws Exception {
         // Retrieve a stored glossary using the ID
         String glossaryId = "559192ed-8e23-...";
-        GlossaryInfo myGlossary = translator.getGlossary(glossaryId);
+        GlossaryInfo myGlossary = client.getGlossary(glossaryId);
 
         // Find and delete glossaries named 'Old glossary'
-        List<GlossaryInfo> glossaries = translator.listGlossaries();
+        List<GlossaryInfo> glossaries = client.listGlossaries();
         for (GlossaryInfo glossary : glossaries) {
             if (glossary.getName() == "Old glossary") {
-                translator.deleteGlossary(glossary);
+                client.deleteGlossary(glossary);
             }
         }
     }
@@ -360,7 +414,7 @@ ID:
 ```java
 class Example {  // Continuing class Example from above
   public getGlossaryEntriesExample() throws Exception {
-      GlossaryEntries entries = translator.getGlossaryEntries(myGlossary);
+      GlossaryEntries entries = client.getGlossaryEntries(myGlossary);
       
       for (Map.Entry<String, String> entry : entries.entrySet()) {
         System.out.println(entry.getKey() + ":" + entry.getValue());
@@ -385,12 +439,12 @@ class Example {  // Continuing class Example from above
         TextTranslationOptions options =
                 new TextTranslationOptions().setGlossary(my_glossary);
         TextResult resultWithGlossary =
-                translator.translateText(text, "en", "de", options);
+                client.translateText(text, "en", "de", options);
         System.out.println(resultWithGlossary.getText()); // "Der Maler wurde mit einem Gewinn ausgezeichnet."
 
         // For comparison, the result without a glossary:
         TextResult resultWithoutGlossary =
-                translator.translateText(text, "en", "de");
+                client.translateText(text, "en", "de");
         System.out.println(resultWithoutGlossary.getText()); // "Der Künstler wurde mit einem Preis ausgezeichnet."
     }
 }
@@ -408,7 +462,7 @@ class Example {  // Continuing class Example from above
 
         File inputFile = new File("/path/to/Instruction Manual.docx");
         File outputFile = new File("/path/to/Bedienungsanleitung.docx");
-        translator.translateDocument(inputFile,
+        client.translateDocument(inputFile,
                                      outputFile,
                                      "en",
                                      "de",
@@ -439,7 +493,7 @@ the `any_limit_reached` property to check all usage subtypes.
 ```java
 class Example {  // Continuing class Example from above
     public void getUsageExample() throws Exception {
-        Usage usage = translator.getUsage();
+        Usage usage = client.getUsage();
         if (usage.anyLimitReached()) {
             System.out.println("Translation limit reached.");
         }
@@ -471,8 +525,8 @@ optional `formality` parameter.
 ```java
 class Example {  // Continuing class Example from above
     public void getLanguagesExample() throws Exception {
-        List<Language> sourceLanguages = translator.getSourceLanguages();
-        List<Language> targetLanguages = translator.getTargetLanguages();
+        List<Language> sourceLanguages = client.getSourceLanguages();
+        List<Language> targetLanguages = client.getTargetLanguages();
         System.out.println("Source languages:");
         for (Language language : sourceLanguages) {
             System.out.printf("%s (%s)%n",
@@ -508,7 +562,7 @@ of `GlossaryLanguagePair` objects. Use the `getSourceLanguage()` and
 class Example {  // Continuing class Example from above
     public void getGlossaryLanguagesExample() throws Exception {
         List<GlossaryLanguagePair> glossaryLanguages =
-                translator.getGlossaryLanguages();
+                client.getGlossaryLanguages();
         for (GlossaryLanguagePair glossaryLanguage : glossaryLanguages) {
             System.out.printf("%s to %s\n",
                               glossaryLanguage.getSourceLanguage(),
@@ -535,35 +589,35 @@ invalid arguments are provided, they may raise the standard exceptions
 ### Writing a Plugin
 
 If you use this library in an application, please identify the application with
-`TranslatorOptions.setAppInfo()`, which takes the name and version of the app:
+`DeepLClientOptions.setAppInfo()`, which takes the name and version of the app:
 
 ```java
 class Example {  // Continuing class Example from above
     public void configurationExample() throws Exception {
-        TranslatorOptions options =
-                new TranslatorOptions().setAppInfo("my-java-translation-plugin", "1.2.3");
-        Translator translator = new Translator(authKey, options);
+        DeepLClientOptions options =
+                new DeepLClientOptions().setAppInfo("my-java-translation-plugin", "1.2.3");
+        DeepLClient client = new DeepLClient(authKey, options);
     }
 }
 ```
 
 This information is passed along when the library makes calls to the DeepL API.
 Both name and version are required. Please note that setting the `User-Agent` header
-via `TranslatorOptions.setHeaders()` will override this setting, if you need to use this,
+via `DeepLClientOptions.setHeaders()` will override this setting, if you need to use this,
 please manually identify your Application in the `User-Agent` header.
 
 ### Configuration
 
-The `Translator` constructor accepts `TranslatorOptions` as a second argument,
+The `DeepLClient` constructor accepts `DeepLClientOptions` as a second argument,
 for example:
 
 ```java
 class Example {  // Continuing class Example from above
     public void configurationExample() throws Exception {
-        TranslatorOptions options =
-                new TranslatorOptions().setMaxRetries(1).setTimeout(Duration.ofSeconds(
+        DeepLClientOptions options =
+                new DeepLClientOptions().setMaxRetries(1).setTimeout(Duration.ofSeconds(
                         1));
-        Translator translator = new Translator(authKey, options);
+        DeepLClient client = new DeepLClient(authKey, options);
     }
 }
 ```
@@ -583,28 +637,28 @@ The available options setters are:
 
 #### Anonymous platform information
 
-By default, we send some basic information about the platform the client library is running on with each request, see [here for an explanation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent). This data is completely anonymous and only used to improve our product, not track any individual users. If you do not wish to send this data, you can opt-out when creating your `Translator` object by calling the `setSendPlatformInfo()` setter on the `TranslatorOptions` like so:
+By default, we send some basic information about the platform the client library is running on with each request, see [here for an explanation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent). This data is completely anonymous and only used to improve our product, not track any individual users. If you do not wish to send this data, you can opt-out when creating your `DeepLClient` object by calling the `setSendPlatformInfo()` setter on the `DeepLClientOptions` like so:
 
 ```java
 class Example {  // Continuing class Example from above
     public void configurationExample() throws Exception {
-        TranslatorOptions options =
-                new TranslatorOptions().setSendPlatformInfo(false);
-        Translator translator = new Translator(authKey, options);
+        DeepLClientOptions options =
+                new DeepLClientOptions().setSendPlatformInfo(false);
+        DeepLClient client = new DeepLClient(authKey, options);
     }
 }
 ```
 
-You can also customize the `User-Agent` header by setting its value explicitly in the `TranslatorOptions` object via the header field. Example:
+You can also customize the `User-Agent` header by setting its value explicitly in the `DeepLClientOptions` object via the header field. Example:
 
 ```java
 class Example {  // Continuing class Example from above
     public void configurationExample() throws Exception {
         Map<String, String> headers = new HashMap<>();
         headers.put("User-Agent", "my custom user agent");
-        TranslatorOptions options =
-                new TranslatorOptions().setHeaders(headers);
-        Translator translator = new Translator(authKey, options);
+        DeepLClientOptions options =
+                new DeepLClientOptions().setHeaders(headers);
+        DeepLClient client = new DeepLClient(authKey, options);
     }
 }
 ```

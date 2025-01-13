@@ -21,6 +21,7 @@ public class Parser {
   public Parser() {
     GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.registerTypeAdapter(TextResult.class, new TextResultDeserializer());
+    gsonBuilder.registerTypeAdapter(WriteResult.class, new WriteResultDeserializer());
     gsonBuilder.registerTypeAdapter(Language.class, new LanguageDeserializer());
     gsonBuilder.registerTypeAdapter(Usage.class, new UsageDeserializer());
     gson = gsonBuilder.create();
@@ -29,6 +30,11 @@ public class Parser {
   public List<TextResult> parseTextResult(String json) {
     TextResponse result = gson.fromJson(json, TextResponse.class);
     return result.translations;
+  }
+
+  public List<WriteResult> parseWriteResult(String json) {
+    WriteResponse result = gson.fromJson(json, WriteResponse.class);
+    return result.improvements;
   }
 
   public Usage parseUsage(String json) {

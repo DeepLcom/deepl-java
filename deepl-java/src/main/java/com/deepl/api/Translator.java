@@ -17,15 +17,18 @@ import org.jetbrains.annotations.Nullable;
  * Client for the DeepL API. To use the DeepL API, initialize an instance of this class using your
  * DeepL Authentication Key as found in your <a href="https://www.deepl.com/pro-account/">DeepL
  * account</a>.
+ *
+ * @deprecated Use {@link DeepLClient} instead.
  */
+@Deprecated
 public class Translator {
   /** Base URL for DeepL API Free accounts. */
   private static final String DEEPL_SERVER_URL_FREE = "https://api-free.deepl.com";
   /** Base URL for DeepL API Pro accounts */
   private static final String DEEPL_SERVER_URL_PRO = "https://api.deepl.com";
 
-  private final Parser jsonParser = new Parser();
-  private final HttpClientWrapper httpClientWrapper;
+  protected final Parser jsonParser = new Parser();
+  protected final HttpClientWrapper httpClientWrapper;
 
   /**
    * Initializes a new Translator object using your Authentication Key.
@@ -841,7 +844,7 @@ public class Translator {
    * @param options Options influencing translation.
    * @return Iterable of parameters for HTTP request.
    */
-  private static ArrayList<KeyValuePair<String, String>> createHttpParams(
+  protected static ArrayList<KeyValuePair<String, String>> createHttpParams(
       String sourceLang, String targetLang, DocumentTranslationOptions options) {
     return createHttpParamsCommon(
         sourceLang,
@@ -861,7 +864,7 @@ public class Translator {
    * @param glossaryId ID of glossary to use for translation.
    * @return Iterable of parameters for HTTP request.
    */
-  private static ArrayList<KeyValuePair<String, String>> createHttpParamsCommon(
+  protected static ArrayList<KeyValuePair<String, String>> createHttpParamsCommon(
       @Nullable String sourceLang,
       String targetLang,
       @Nullable Formality formality,
@@ -920,7 +923,7 @@ public class Translator {
    * @param targetLang Language code of the desired output language.
    * @throws IllegalArgumentException If either language code is invalid.
    */
-  private static void checkValidLanguages(@Nullable String sourceLang, String targetLang)
+  protected static void checkValidLanguages(@Nullable String sourceLang, String targetLang)
       throws IllegalArgumentException {
     if (sourceLang != null && sourceLang.isEmpty()) {
       throw new IllegalArgumentException("sourceLang must be null or non-empty");
@@ -982,7 +985,7 @@ public class Translator {
    * @throws DeepLException Throws {@link DeepLException} or a derived exception depending on the
    *     type of error.
    */
-  private void checkResponse(
+  protected void checkResponse(
       HttpResponse response, boolean inDocumentDownload, boolean usingGlossary)
       throws DeepLException {
     if (response.getCode() >= 200 && response.getCode() < 300) {
