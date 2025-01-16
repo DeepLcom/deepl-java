@@ -85,7 +85,7 @@ public class Translator {
    */
   private String constructUserAgentString(boolean sendPlatformInfo, AppInfo appInfo) {
     StringBuilder sb = new StringBuilder();
-    sb.append("deepl-java/1.7.0");
+    sb.append("deepl-java/1.8.0");
     if (sendPlatformInfo) {
       sb.append(" (");
       Properties props = System.getProperties();
