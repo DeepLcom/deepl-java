@@ -17,10 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * Client for the DeepL API. To use the DeepL API, initialize an instance of this class using your
  * DeepL Authentication Key as found in your <a href="https://www.deepl.com/pro-account/">DeepL
  * account</a>.
- *
- * @deprecated Use {@link DeepLClient} instead.
  */
-@Deprecated
 public class Translator {
   /** Base URL for DeepL API Free accounts. */
   private static final String DEEPL_SERVER_URL_FREE = "https://api-free.deepl.com";
@@ -40,7 +37,9 @@ public class Translator {
    *     href="https://www.deepl.com/pro-account/">DeepL account</a>.
    * @param options Additional options controlling Translator behaviour.
    * @throws IllegalArgumentException If authKey is invalid.
+   * @deprecated Use {@link DeepLClient} instead.
    */
+  @Deprecated
   public Translator(String authKey, TranslatorOptions options) throws IllegalArgumentException {
     if (authKey == null || authKey.length() == 0) {
       throw new IllegalArgumentException("authKey must be a non-empty string");
@@ -73,7 +72,9 @@ public class Translator {
    * @param authKey DeepL Authentication Key as found in your <a
    *     href="https://www.deepl.com/pro-account/">DeepL account</a>.
    * @throws IllegalArgumentException If authKey is invalid.
+   * @deprecated Use {@link DeepLClient} instead.
    */
+  @Deprecated
   public Translator(String authKey) throws IllegalArgumentException {
     this(authKey, new TranslatorOptions());
   }

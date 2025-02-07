@@ -17,10 +17,7 @@ import org.jetbrains.annotations.Nullable;
  *      TranslatorOptions options = new TranslatorOptions()
  *          .setTimeout(Duration.ofSeconds(1)).setMaxRetries(2);
  * </code>
- *
- * @deprecated Use {@link DeepLClientOptions} instead.
  */
-@Deprecated
 public class TranslatorOptions {
   private int maxRetries = 5;
   private Duration timeout = Duration.ofSeconds(10);
@@ -29,6 +26,10 @@ public class TranslatorOptions {
   @Nullable private String serverUrl = null;
   private boolean sendPlatformInfo = true;
   @Nullable private AppInfo appInfo = null;
+
+  /** @deprecated Use {@link DeepLClient} instead. */
+  @Deprecated
+  public TranslatorOptions() {}
 
   /**
    * Set the maximum number of failed attempts that {@link Translator} will retry, per request. By
