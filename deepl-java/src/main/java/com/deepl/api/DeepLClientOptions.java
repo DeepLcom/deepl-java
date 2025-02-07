@@ -4,4 +4,5 @@
 package com.deepl.api;
 
 /** {@inheritDoc} */
+@SuppressWarnings("deprecation")
 public class DeepLClientOptions extends TranslatorOptions {}

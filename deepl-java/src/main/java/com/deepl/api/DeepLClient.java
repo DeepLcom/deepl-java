@@ -37,6 +37,7 @@ public class DeepLClient extends Translator {
    * @param options Additional options controlling Client behaviour.
    * @throws IllegalArgumentException If authKey is invalid.
    */
+  @SuppressWarnings("deprecation")
   public DeepLClient(String authKey, DeepLClientOptions options) throws IllegalArgumentException {
     super(authKey, options);
   }
