@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.deepl.api"
-version = "1.8.0"
+version = "1.8.1"
 
 val sharedManifest = the<JavaPluginConvention>().manifest {
     attributes (

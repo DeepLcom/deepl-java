@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.8.1] - 2025-02-07
+### Fixed
+* Added a constructor for `DeepLClient` that only takes an `authKey`, to fix the
+  README example and be in line with `Translator`.
+* Un-deprecated the `Translator` and `TranslatorOptions` class and moved it to
+  their constructors. The functionality in them continues to work and be supported,
+  user code should just use `DeepLClient` and `DeepLClientOptions`.
+
 ## [1.8.0] - 2025-01-17
 ### Added
 * Added support for the Write API in the client library, the implementation
@@ -135,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[1.8.1]: https://github.com/DeepLcom/deepl-java/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/DeepLcom/deepl-java/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/DeepLcom/deepl-java/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/DeepLcom/deepl-java/compare/v1.5.1...v1.6.0
