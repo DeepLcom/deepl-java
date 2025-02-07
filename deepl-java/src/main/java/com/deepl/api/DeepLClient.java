@@ -12,8 +12,32 @@ import org.jetbrains.annotations.Nullable;
 
 public class DeepLClient extends Translator {
 
-  /** {@inheritDoc} */
-  public DeepLClient(String authKey, TranslatorOptions options) throws IllegalArgumentException {
+  /**
+   * Initializes a new DeepLClient object using your Authentication Key.
+   *
+   * <p>Note: This function does not establish a connection to the DeepL API. To check connectivity,
+   * use {@link DeepLClient#getUsage()}.
+   *
+   * @param authKey DeepL Authentication Key as found in your <a
+   *     href="https://www.deepl.com/pro-account/">DeepL account</a>.
+   * @throws IllegalArgumentException If authKey is invalid.
+   */
+  public DeepLClient(String authKey) throws IllegalArgumentException {
+    this(authKey, new DeepLClientOptions());
+  }
+
+  /**
+   * Initializes a new DeepLClient object using your Authentication Key.
+   *
+   * <p>Note: This function does not establish a connection to the DeepL API. To check connectivity,
+   * use {@link DeepLClient#getUsage()}.
+   *
+   * @param authKey DeepL Authentication Key as found in your <a
+   *     href="https://www.deepl.com/pro-account/">DeepL account</a>.
+   * @param options Additional options controlling Client behaviour.
+   * @throws IllegalArgumentException If authKey is invalid.
+   */
+  public DeepLClient(String authKey, DeepLClientOptions options) throws IllegalArgumentException {
     super(authKey, options);
   }
 
