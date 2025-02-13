@@ -37,12 +37,12 @@ class GeneralTest extends TestBase {
 
   @Test
   void testExampleTranslation() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
 
     for (Map.Entry<String, String> entry : exampleText.entrySet()) {
       String inputText = entry.getValue();
       String sourceLang = LanguageCode.removeRegionalVariant(entry.getKey());
-      TextResult result = translator.translateText(inputText, sourceLang, "en-US");
+      TextResult result = client.translateText(inputText, sourceLang, "en-US");
       Assertions.assertTrue(result.getText().toLowerCase(Locale.ENGLISH).contains("proton"));
       Assertions.assertEquals(inputText.length(), result.getBilledCharacters());
     }
@@ -56,10 +56,10 @@ class GeneralTest extends TestBase {
   })
   void testModelType(String modelTypeArg, String expectedModelType)
       throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String sourceLang = "de";
     TextResult result =
-        translator.translateText(
+        client.translateText(
             exampleText.get(sourceLang),
             sourceLang,
             "en-US",
@@ -81,7 +81,7 @@ class GeneralTest extends TestBase {
   @Test
   void testMixedDirectionText() throws DeepLException, InterruptedException {
     Assumptions.assumeFalse(isMockServer);
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     TextTranslationOptions options =
         new TextTranslationOptions().setTagHandling("xml").setIgnoreTags(Arrays.asList("xml"));
     String arIgnorePart = "<ignore>يجب تجاهل هذا الجزء.</ignore>";
@@ -91,17 +91,16 @@ class GeneralTest extends TestBase {
     String arSentenceWithEnIgnorePart =
         "<p>هذه <i>جملة</i> <b>قصيرة</b>. " + enIgnorePart + "هذه جملة أخرى.</p>";
 
-    TextResult enResult =
-        translator.translateText(enSentenceWithArIgnorePart, null, "en-US", options);
+    TextResult enResult = client.translateText(enSentenceWithArIgnorePart, null, "en-US", options);
     Assertions.assertTrue(enResult.getText().contains(arIgnorePart));
-    TextResult arResult = translator.translateText(arSentenceWithEnIgnorePart, null, "ar", options);
+    TextResult arResult = client.translateText(arSentenceWithEnIgnorePart, null, "ar", options);
     Assertions.assertTrue(arResult.getText().contains(enIgnorePart));
   }
 
   @Test
   void testUsage() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
-    Usage usage = translator.getUsage();
+    DeepLClient client = createDeepLClient();
+    Usage usage = client.getUsage();
     Assertions.assertTrue(usage.toString().contains("Usage this billing period"));
   }
 
@@ -122,9 +121,9 @@ class GeneralTest extends TestBase {
 
   @Test
   void testGetSourceAndTargetLanguages() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
-    List<Language> sourceLanguages = translator.getSourceLanguages();
-    List<Language> targetLanguages = translator.getTargetLanguages();
+    DeepLClient client = createDeepLClient();
+    List<Language> sourceLanguages = client.getSourceLanguages();
+    List<Language> targetLanguages = client.getTargetLanguages();
 
     for (Language language : sourceLanguages) {
       if (Objects.equals(language.getCode(), "en")) {
@@ -146,8 +145,8 @@ class GeneralTest extends TestBase {
 
   @Test
   void testGetGlossaryLanguages() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
-    List<GlossaryLanguagePair> glossaryLanguagePairs = translator.getGlossaryLanguages();
+    DeepLClient client = createDeepLClient();
+    List<GlossaryLanguagePair> glossaryLanguagePairs = client.getGlossaryLanguages();
     Assertions.assertTrue(glossaryLanguagePairs.size() > 0);
     for (GlossaryLanguagePair glossaryLanguagePair : glossaryLanguagePairs) {
       Assertions.assertTrue(glossaryLanguagePair.getSourceLanguage().length() > 0);
@@ -185,25 +184,25 @@ class GeneralTest extends TestBase {
   void testUsageNoResponse() {
     Assumptions.assumeTrue(isMockServer);
     // Lower the retry count and timeout for this test
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions().setNoResponse(2),
             new TranslatorOptions().setMaxRetries(0).setTimeout(Duration.ofMillis(1)));
 
-    Assertions.assertThrows(ConnectionException.class, translator::getUsage);
+    Assertions.assertThrows(ConnectionException.class, client::getUsage);
   }
 
   @Test
   void testTranslateTooManyRequests() {
     Assumptions.assumeTrue(isMockServer);
     // Lower the retry count and timeout for this test
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions().setRespondWith429(2), new TranslatorOptions().setMaxRetries(0));
 
     Assertions.assertThrows(
         TooManyRequestsException.class,
-        () -> translator.translateText(exampleText.get("en"), null, "DE"));
+        () -> client.translateText(exampleText.get("en"), null, "DE"));
   }
 
   @Test
@@ -212,15 +211,15 @@ class GeneralTest extends TestBase {
     int characterLimit = 20;
     int documentLimit = 1;
     // Lower the retry count and timeout for this test
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions()
                 .setInitCharacterLimit(characterLimit)
                 .setInitDocumentLimit(documentLimit)
                 .withRandomAuthKey(),
             new TranslatorOptions().setMaxRetries(0).setTimeout(Duration.ofMillis(1)));
 
-    Usage usage = translator.getUsage();
+    Usage usage = client.getUsage();
     Assertions.assertNotNull(usage.getCharacter());
     Assertions.assertNotNull(usage.getDocument());
     Assertions.assertNull(usage.getTeamDocument());
@@ -235,9 +234,9 @@ class GeneralTest extends TestBase {
     writeToFile(inputFile, repeatString("a", characterLimit));
     File outputFile = createOutputFile();
 
-    translator.translateDocument(inputFile, outputFile, null, "de");
+    client.translateDocument(inputFile, outputFile, null, "de");
 
-    usage = translator.getUsage();
+    usage = client.getUsage();
     Assertions.assertTrue(usage.anyLimitReached());
     Assertions.assertNotNull(usage.getCharacter());
     Assertions.assertNotNull(usage.getDocument());
@@ -247,7 +246,7 @@ class GeneralTest extends TestBase {
     Assertions.assertThrows(
         IOException.class,
         () -> {
-          translator.translateDocument(inputFile, outputFile, null, "de");
+          client.translateDocument(inputFile, outputFile, null, "de");
         });
     outputFile.delete();
 
@@ -255,7 +254,7 @@ class GeneralTest extends TestBase {
         Assertions.assertThrows(
             DocumentTranslationException.class,
             () -> {
-              translator.translateDocument(inputFile, outputFile, null, "de");
+              client.translateDocument(inputFile, outputFile, null, "de");
             });
     Assertions.assertNull(thrownDeepLException.getHandle());
     Assertions.assertEquals(
@@ -264,7 +263,7 @@ class GeneralTest extends TestBase {
     Assertions.assertThrows(
         QuotaExceededException.class,
         () -> {
-          translator.translateText(exampleText.get("en"), null, "de");
+          client.translateText(exampleText.get("en"), null, "de");
         });
   }
 
@@ -272,15 +271,15 @@ class GeneralTest extends TestBase {
   void testUsageTeamDocumentLimit() throws Exception {
     Assumptions.assumeTrue(isMockServer);
     int teamDocumentLimit = 1;
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions()
                 .setInitCharacterLimit(0)
                 .setInitDocumentLimit(0)
                 .setInitTeamDocumentLimit(teamDocumentLimit)
                 .withRandomAuthKey());
 
-    Usage usage = translator.getUsage();
+    Usage usage = client.getUsage();
     Assertions.assertNull(usage.getCharacter());
     Assertions.assertNull(usage.getDocument());
     Assertions.assertNotNull(usage.getTeamDocument());
@@ -292,9 +291,9 @@ class GeneralTest extends TestBase {
     writeToFile(inputFile, "a");
     File outputFile = createOutputFile();
 
-    translator.translateDocument(inputFile, outputFile, null, "de");
+    client.translateDocument(inputFile, outputFile, null, "de");
 
-    usage = translator.getUsage();
+    usage = client.getUsage();
     Assertions.assertTrue(usage.anyLimitReached());
     Assertions.assertNotNull(usage.getTeamDocument());
     Assertions.assertTrue(usage.getTeamDocument().limitReached());
@@ -326,8 +325,8 @@ class GeneralTest extends TestBase {
             (mock, context) -> {
               Mockito.when(mock.openConnection()).thenReturn(con);
             })) {
-      Translator translator = createTranslator(sessionOptions, translatorOptions);
-      Usage usage = translator.getUsage();
+      DeepLClient client = createDeepLClient(sessionOptions, translatorOptions);
+      Usage usage = client.getUsage();
       String userAgentHeader = headers.get("User-Agent");
       for (String s : requiredStrings) {
         Assertions.assertTrue(
