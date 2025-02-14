@@ -31,7 +31,7 @@ Java 1.8 or later.
 Add this dependency to your project's build file:
 
 ```
-implementation "com.deepl.api:deepl-java:1.8.1"
+implementation "com.deepl.api:deepl-java:1.9.0"
 ```
 
 ### Maven users
@@ -42,7 +42,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>com.deepl.api</groupId>
   <artifactId>deepl-java</artifactId>
-  <version>1.8.1</version>
+  <version>1.9.0</version>
 </dependency>
 ```
 
@@ -634,6 +634,10 @@ The available options setters are:
 - `setServerUrl()`: base URL for DeepL API, may be overridden for testing
   purposes. By default, the correct DeepL API (Free or Pro) is automatically
   selected.
+- `setApiVersion()`: Version of the DeepL API, may be overridden to use e.g.
+  the v1 API. By default, the most recent API version is automatically selected.
+  Please note: The v1 API does not support all features of the API, e.g.
+  document translation or rephrase.
 
 #### Anonymous platform information
 
