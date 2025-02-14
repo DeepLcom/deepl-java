@@ -73,7 +73,9 @@ public class DeepLClient extends Translator {
       throws InterruptedException, DeepLException {
     Iterable<KeyValuePair<String, String>> params =
         createWriteHttpParams(texts, targetLang, options);
-    HttpResponse response = httpClientWrapper.sendRequestWithBackoff("/v2/write/rephrase", params);
+    HttpResponse response =
+        httpClientWrapper.sendRequestWithBackoff(
+            String.format("/%s/write/rephrase", apiVersion), params);
     checkResponse(response, false, false);
     return jsonParser.parseWriteResult(response.getBody());
   }
