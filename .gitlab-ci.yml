@@ -128,7 +128,7 @@ build_manual:
         export DEEPL_PROXY_URL=http://deepl-mock:3001
         export DEEPL_MOCK_PROXY_SERVER_PORT=3001
       fi
-    - ./gradlew test
+    - ./gradlew test -DrunV1ApiTests=true
   artifacts:
     paths:
       - deepl-java/build/reports/tests/test

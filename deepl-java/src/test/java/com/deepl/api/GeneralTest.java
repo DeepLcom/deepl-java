@@ -9,6 +9,7 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -344,6 +345,31 @@ class GeneralTest extends TestBase {
     }
   }
 
+  @Test
+  @EnabledIf("runV1ApiTests")
+  void testV1Api() throws DeepLException, InterruptedException {
+    SessionOptions sessionOptions = new SessionOptions();
+    DeepLClientOptions clientOptions =
+        (new DeepLClientOptions()).setApiVersion(DeepLApiVersion.VERSION_1);
+    DeepLClient client = createDeepLClient(sessionOptions, clientOptions);
+
+    for (Map.Entry<String, String> entry : exampleText.entrySet()) {
+      String inputText = entry.getValue();
+      String sourceLang = LanguageCode.removeRegionalVariant(entry.getKey());
+      TextResult result = client.translateText(inputText, sourceLang, "en-US");
+      Assertions.assertTrue(result.getText().toLowerCase(Locale.ENGLISH).contains("proton"));
+      Assertions.assertEquals(inputText.length(), result.getBilledCharacters());
+    }
+    Usage usage = client.getUsage();
+    Assertions.assertTrue(usage.toString().contains("Usage this billing period"));
+
+    List<Language> sourceLanguages = client.getSourceLanguages();
+    List<Language> targetLanguages = client.getTargetLanguages();
+    Assertions.assertTrue(sourceLanguages.size() > 20);
+    Assertions.assertTrue(targetLanguages.size() > 20);
+    Assertions.assertTrue(targetLanguages.size() >= sourceLanguages.size());
+  }
+
   // Session options & Translator options: Used to construct the `Translator`
   // Next arg: List of Strings that must be contained in the user agent header
   // Last arg: List of Strings that must not be contained in the user agent header
@@ -390,5 +416,9 @@ class GeneralTest extends TestBase {
                 .setAppInfo("my-java-translation-plugin", "1.2.3"),
             customUserAgent,
             detailedPlatformInfoWithAppInfo));
+  }
+
+  boolean runV1ApiTests() {
+    return Boolean.getBoolean("runV1ApiTests");
   }
 }
