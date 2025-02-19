@@ -41,19 +41,24 @@ public class Translator {
    */
   @Deprecated
   public Translator(String authKey, TranslatorOptions options) throws IllegalArgumentException {
-    if (authKey == null || authKey.length() == 0) {
-      throw new IllegalArgumentException("authKey must be a non-empty string");
+    if (authKey == null || authKey.isEmpty()) {
+      throw new IllegalArgumentException("authKey cannot be null or empty");
     }
+
+    String sanitizedAuthKey = authKey.trim();
+
     String serverUrl =
         (options.getServerUrl() != null)
             ? options.getServerUrl()
-            : (isFreeAccountAuthKey(authKey) ? DEEPL_SERVER_URL_FREE : DEEPL_SERVER_URL_PRO);
+            : (isFreeAccountAuthKey(sanitizedAuthKey)
+                ? DEEPL_SERVER_URL_FREE
+                : DEEPL_SERVER_URL_PRO);
 
     Map<String, String> headers = new HashMap<>();
     if (options.getHeaders() != null) {
       headers.putAll(options.getHeaders());
     }
-    headers.putIfAbsent("Authorization", "DeepL-Auth-Key " + authKey);
+    headers.putIfAbsent("Authorization", "DeepL-Auth-Key " + sanitizedAuthKey);
     headers.putIfAbsent(
         "User-Agent",
         constructUserAgentString(options.getSendPlatformInfo(), options.getAppInfo()));
