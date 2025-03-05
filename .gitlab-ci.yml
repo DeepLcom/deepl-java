@@ -6,6 +6,7 @@ include:
   - project: 'deepl/ops/ci-cd-infrastructure/gitlab-ci-lib'
     file:
       - '/templates/.secret-detection.yml'
+  - template: Security/SAST.gitlab-ci.yml
 
 # Global --------------------------
 
@@ -15,6 +16,7 @@ image: eclipse-temurin:17-alpine
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   JAVA_TOOL_OPTIONS: ""
+  GITLAB_ADVANCED_SAST_ENABLED: 'true'
 
 workflow:
   rules:
@@ -76,6 +78,22 @@ secret_detection:
     - echo "overriding default before_script..."
   rules:
     - if: $CI_MERGE_REQUEST_ID
+
+gitlab-advanced-sast:
+  stage: check
+  rules:
+    - when: always
+  variables:
+    SAST_EXCLUDED_PATHS: '$DEFAULT_SAST_EXCLUDED_PATHS'
+    GIT_STRATEGY: clone
+
+semgrep-sast:
+  stage: check
+  rules:
+    - when: always
+  variables:
+    SAST_EXCLUDED_PATHS: '$DEFAULT_SAST_EXCLUDED_PATHS'
+    GIT_STRATEGY: clone
 
 # stage: build ----------------------
 
