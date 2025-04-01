@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [Unreleased]
 ### Added
+* Added support for the /v3 Multilingual Glossary APIs in the client library
+  while providing backwards compatability for the previous /v2 Glossary
+  endpoints. Please refer to the README or
+  [upgrading_to_multilingual_glossaries.md](upgrading_to_multilingual_glossaries.md)
+  for usage instructions.
 * Added Ukrainian language code
 
 

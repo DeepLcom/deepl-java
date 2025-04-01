@@ -9,6 +9,12 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.*;
 
 /**
@@ -21,6 +27,7 @@ class HttpClientWrapper {
   private static final String GET = "GET";
   private static final String POST = "POST";
   private static final String DELETE = "DELETE";
+  private static final String PUT = "PUT";
   private final String serverUrl;
   private final Map<String, String> headers;
   private final Duration minTimeout;
@@ -45,9 +52,16 @@ class HttpClientWrapper {
     return sendRequestWithBackoff(GET, relativeUrl, null).toStringResponse();
   }
 
+  public HttpResponse sendDeleteRequestWithBackoff(
+      String relativeUrl, @Nullable Iterable<KeyValuePair<String, String>> params)
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildFormURLEncodedContent(params);
+    return sendRequestWithBackoff(DELETE, relativeUrl, content).toStringResponse();
+  }
+
   public HttpResponse sendDeleteRequestWithBackoff(String relativeUrl)
       throws InterruptedException, DeepLException {
-    return sendRequestWithBackoff(DELETE, relativeUrl, null).toStringResponse();
+    return sendDeleteRequestWithBackoff(relativeUrl, null);
   }
 
   public HttpResponse sendRequestWithBackoff(String relativeUrl)
@@ -60,6 +74,56 @@ class HttpClientWrapper {
       throws InterruptedException, DeepLException {
     HttpContent content = HttpContent.buildFormURLEncodedContent(params);
     return sendRequestWithBackoff(POST, relativeUrl, content).toStringResponse();
+  }
+
+  public HttpResponse sendPutRequestWithBackoff(
+      String relativeUrl, @Nullable Iterable<KeyValuePair<String, String>> params)
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildFormURLEncodedContent(params);
+    return sendRequestWithBackoff(PUT, relativeUrl, content).toStringResponse();
+  }
+
+  public HttpResponse sendPatchRequestWithBackoff(
+      String relativeUrl, @Nullable Iterable<KeyValuePair<String, String>> params)
+      throws DeepLException {
+    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+      HttpContent content = HttpContent.buildFormURLEncodedContent(params);
+      HttpPatch request = new HttpPatch(serverUrl + relativeUrl);
+
+      // Set timeouts
+      BackoffTimer backoffTimer = new BackoffTimer(this.minTimeout);
+      RequestConfig requestConfig =
+          RequestConfig.custom()
+              .setConnectTimeout((int) backoffTimer.getTimeoutMillis())
+              .setSocketTimeout((int) backoffTimer.getTimeoutMillis())
+              .build();
+      request.setConfig(requestConfig);
+
+      // Set headers
+      for (Map.Entry<String, String> entry : this.headers.entrySet()) {
+        request.setHeader(entry.getKey(), entry.getValue());
+      }
+
+      request.setHeader("Content-Type", content.getContentType());
+      request.setEntity(new ByteArrayEntity(content.getContent()));
+
+      // Execute the request
+      org.apache.http.HttpResponse response = httpClient.execute(request);
+
+      // Get the response stream
+      InputStream responseStream =
+          (response.getStatusLine().getStatusCode() >= 200
+                  && response.getStatusLine().getStatusCode() < 400)
+              ? response.getEntity().getContent()
+              : new ByteArrayInputStream(EntityUtils.toByteArray(response.getEntity()));
+
+      return new HttpResponseStream(response.getStatusLine().getStatusCode(), responseStream)
+          .toStringResponse();
+    } catch (SocketTimeoutException e) {
+      throw new ConnectionException(e.getMessage(), true, e);
+    } catch (RuntimeException | IOException e) {
+      throw new ConnectionException(e.getMessage(), false, e);
+    }
   }
 
   public HttpResponseStream downloadWithBackoff(
