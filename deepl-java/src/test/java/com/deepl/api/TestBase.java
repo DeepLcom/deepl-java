@@ -80,6 +80,7 @@ public class TestBase {
     exampleText.put("sl", "protonski žarek");
     exampleText.put("sv", "protonstråle");
     exampleText.put("tr", "proton ışını");
+    exampleText.put("uk", "Протонний промінь");
     exampleText.put("zh", "质子束");
 
     String tmpdir = System.getProperty("java.io.tmpdir");
