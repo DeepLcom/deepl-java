@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+<!-- * add to here -->
+### Changed
+<!-- * add to here -->
+
+
+## [1.10.0] - 2025-04-30
+### Added
 * Added support for the /v3 Multilingual Glossary APIs in the client library
   while providing backwards compatability for the previous /v2 Glossary
   endpoints. Please refer to the README or
@@ -159,7 +166,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
-[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/DeepLcom/deepl-java/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/DeepLcom/deepl-java/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/DeepLcom/deepl-java/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/DeepLcom/deepl-java/compare/v1.7.0...v1.8.0
