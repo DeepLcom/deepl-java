@@ -14,25 +14,25 @@ import org.junit.jupiter.api.Test;
 public class TranslateDocumentTest extends TestBase {
   @Test
   void testTranslateDocument() throws Exception {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
 
     File inputFile = createInputFile();
     File outputFile = createOutputFile();
 
-    translator.translateDocument(inputFile, outputFile, "en", "de");
+    client.translateDocument(inputFile, outputFile, "en", "de");
     Assertions.assertEquals(exampleOutput, readFromFile(outputFile));
 
     // Test with output path occupied
     Assertions.assertThrows(
         IOException.class,
         () -> {
-          translator.translateDocument(inputFile, outputFile, "en", "de");
+          client.translateDocument(inputFile, outputFile, "en", "de");
         });
   }
 
   @Test
   void testTranslateDocumentFailsWithOutputOccupied() throws Exception {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
 
     File inputFile = createInputFile();
     File outputFile = createOutputFile();
@@ -42,52 +42,52 @@ public class TranslateDocumentTest extends TestBase {
     Assertions.assertThrows(
         IOException.class,
         () -> {
-          translator.translateDocument(inputFile, outputFile, "en", "de");
+          client.translateDocument(inputFile, outputFile, "en", "de");
         });
   }
 
   @Test
   void testTranslateDocumentWithRetry() throws Exception {
     Assumptions.assumeTrue(isMockServer);
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions().setNoResponse(1),
             new TranslatorOptions().setTimeout(Duration.ofSeconds(1)));
 
     File outputFile = createOutputFile();
-    translator.translateDocument(createInputFile(), outputFile, "en", "de");
+    client.translateDocument(createInputFile(), outputFile, "en", "de");
     Assertions.assertEquals(exampleOutput, readFromFile(outputFile));
   }
 
   @Test
   void testTranslateDocumentWithWaiting() throws Exception {
     Assumptions.assumeTrue(isMockServer);
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions()
                 .setDocumentTranslateTime(Duration.ofSeconds(2))
                 .setDocumentQueueTime(Duration.ofSeconds(2)));
     File outputFile = createOutputFile();
-    translator.translateDocument(createInputFile(), outputFile, "en", "de");
+    client.translateDocument(createInputFile(), outputFile, "en", "de");
     Assertions.assertEquals(exampleOutput, readFromFile(outputFile));
   }
 
   @Test
   void testTranslateLargeDocument() throws Exception {
     Assumptions.assumeTrue(isMockServer);
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     File inputFile = createInputFile(exampleLargeInput);
     File outputFile = createOutputFile();
-    translator.translateDocument(inputFile, outputFile, "en", "de");
+    client.translateDocument(inputFile, outputFile, "en", "de");
     Assertions.assertEquals(exampleLargeOutput, readFromFile(outputFile));
   }
 
   @Test
   void testTranslateDocumentFormality() throws Exception {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     File inputFile = createInputFile("How are you?");
     File outputFile = createOutputFile();
-    translator.translateDocument(
+    client.translateDocument(
         inputFile,
         outputFile,
         "en",
@@ -99,7 +99,7 @@ public class TranslateDocumentTest extends TestBase {
 
     outputFile.delete();
 
-    translator.translateDocument(
+    client.translateDocument(
         inputFile,
         outputFile,
         "en",
@@ -112,7 +112,7 @@ public class TranslateDocumentTest extends TestBase {
 
   @Test
   void testTranslateDocumentFailureDuringTranslation() throws Exception {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
 
     // Translating text from DE to DE will trigger error
     File inputFile = createInputFile(exampleText.get("de"));
@@ -122,14 +122,14 @@ public class TranslateDocumentTest extends TestBase {
         Assertions.assertThrows(
             DocumentTranslationException.class,
             () -> {
-              translator.translateDocument(inputFile, outputFile, null, "de");
+              client.translateDocument(inputFile, outputFile, null, "de");
             });
     Assertions.assertTrue(exception.getMessage().contains("Source and target language"));
   }
 
   @Test
   void testInvalidDocument() throws Exception {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     File inputFile = new File(tempDir + "/document.xyz");
     writeToFile(inputFile, exampleText.get("en"));
     File outputFile = new File(tempDir + "/output_document.xyz");
@@ -139,7 +139,7 @@ public class TranslateDocumentTest extends TestBase {
         Assertions.assertThrows(
             DocumentTranslationException.class,
             () -> {
-              translator.translateDocument(inputFile, outputFile, "en", "de");
+              client.translateDocument(inputFile, outputFile, "en", "de");
             });
     Assertions.assertNull(exception.getHandle());
   }
@@ -148,14 +148,14 @@ public class TranslateDocumentTest extends TestBase {
   void testTranslateDocumentLowLevel() throws Exception {
     Assumptions.assumeTrue(isMockServer);
     // Set a small document queue time to attempt downloading a queued document
-    Translator translator =
-        createTranslator(new SessionOptions().setDocumentQueueTime(Duration.ofMillis(100)));
+    DeepLClient client =
+        createDeepLClient(new SessionOptions().setDocumentQueueTime(Duration.ofMillis(100)));
 
     File inputFile = createInputFile();
     File outputFile = createOutputFile();
-    final DocumentHandle handle = translator.translateDocumentUpload(inputFile, "en", "de");
+    final DocumentHandle handle = client.translateDocumentUpload(inputFile, "en", "de");
 
-    DocumentStatus status = translator.translateDocumentStatus(handle);
+    DocumentStatus status = client.translateDocumentStatus(handle);
     Assertions.assertEquals(handle.getDocumentId(), status.getDocumentId());
     Assertions.assertTrue(status.ok());
     Assertions.assertFalse(status.done());
@@ -164,24 +164,24 @@ public class TranslateDocumentTest extends TestBase {
     String documentId = handle.getDocumentId();
     String documentKey = handle.getDocumentKey();
     DocumentHandle recreatedHandle = new DocumentHandle(documentId, documentKey);
-    status = translator.translateDocumentStatus(recreatedHandle);
+    status = client.translateDocumentStatus(recreatedHandle);
     Assertions.assertTrue(status.ok());
 
     while (status.ok() && !status.done()) {
       Thread.sleep(200);
-      status = translator.translateDocumentStatus(recreatedHandle);
+      status = client.translateDocumentStatus(recreatedHandle);
     }
 
     Assertions.assertTrue(status.ok() && status.done());
-    translator.translateDocumentDownload(recreatedHandle, outputFile);
+    client.translateDocumentDownload(recreatedHandle, outputFile);
     Assertions.assertEquals(exampleOutput, readFromFile(outputFile));
   }
 
   @Test
   void testTranslateDocumentRequestFields() throws Exception {
     Assumptions.assumeTrue(isMockServer);
-    Translator translator =
-        createTranslator(
+    DeepLClient client =
+        createDeepLClient(
             new SessionOptions()
                 .setDocumentTranslateTime(Duration.ofSeconds(2))
                 .setDocumentQueueTime(Duration.ofSeconds(2)));
@@ -189,13 +189,13 @@ public class TranslateDocumentTest extends TestBase {
     File outputFile = createOutputFile();
 
     long timeBefore = new Date().getTime();
-    DocumentHandle handle = translator.translateDocumentUpload(inputFile, "en", "de");
-    DocumentStatus status = translator.translateDocumentStatus(handle);
+    DocumentHandle handle = client.translateDocumentUpload(inputFile, "en", "de");
+    DocumentStatus status = client.translateDocumentStatus(handle);
     Assertions.assertTrue(status.ok());
     Assertions.assertTrue(
         status.getSecondsRemaining() == null || status.getSecondsRemaining() >= 0);
-    status = translator.translateDocumentWaitUntilDone(handle);
-    translator.translateDocumentDownload(handle, outputFile);
+    status = client.translateDocumentWaitUntilDone(handle);
+    client.translateDocumentDownload(handle, outputFile);
     long timeAfter = new Date().getTime();
 
     Assertions.assertEquals(exampleInput.length(), status.getBilledCharacters());
@@ -205,14 +205,14 @@ public class TranslateDocumentTest extends TestBase {
 
   @Test
   void testRecreateDocumentHandleInvalid() {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String documentId = repeatString("12AB", 8);
     String documentKey = repeatString("CD34", 16);
     DocumentHandle handle = new DocumentHandle(documentId, documentKey);
     Assertions.assertThrows(
         NotFoundException.class,
         () -> {
-          translator.translateDocumentStatus(handle);
+          client.translateDocumentStatus(handle);
         });
   }
 }
