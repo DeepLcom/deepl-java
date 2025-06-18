@@ -34,10 +34,14 @@ public class MultilingualGlossaryCleanupUtility implements AutoCloseable {
     for (MultilingualGlossaryInfo glossary : glossaries) {
       if (Objects.equals(glossary.getName(), glossaryName)) {
         try {
-          // TODO replace with v3 delete glossary
-          deepLClient.deleteGlossary(glossary.getGlossaryId());
+          deepLClient.deleteMultilingualGlossary(glossary.getGlossaryId());
         } catch (Exception exception) {
           // Ignore
+          System.out.println(
+              "Failed to delete glossary: "
+                  + glossaryName
+                  + "\nException: "
+                  + exception.getMessage());
         }
       }
     }
