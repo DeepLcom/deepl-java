@@ -641,7 +641,7 @@ public class DeepLClient extends Translator {
    * @throws DeepLException If any error occurs while communicating with the DeepL API, a {@link
    *     DeepLException} or a derived class will be thrown.
    */
-  void deleteMultilingualGlossary(String glossaryId) throws DeepLException, InterruptedException {
+  public void deleteMultilingualGlossary(String glossaryId) throws DeepLException, InterruptedException {
     String relativeUrl = String.format("/v3/glossaries/%s", glossaryId);
     HttpResponse response = httpClientWrapper.sendDeleteRequestWithBackoff(relativeUrl);
     this.checkResponse(response, false, true);
