@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 <!-- * add to here -->
 ### Changed
-<!-- * add to here -->
+* Migrate to Sonatype Portal OSSRH Staging API due to legacy OSSRH being sunsetted.
 
 
 ## [1.10.1] - 2025-06-18
