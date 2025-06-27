@@ -31,7 +31,7 @@ Java 1.8 or later.
 Add this dependency to your project's build file:
 
 ```
-implementation "com.deepl.api:deepl-java:1.8.1"
+implementation "com.deepl.api:deepl-java:1.10.1"
 ```
 
 ### Maven users
@@ -42,7 +42,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>com.deepl.api</groupId>
   <artifactId>deepl-java</artifactId>
-  <version>1.8.1</version>
+  <version>1.10.1</version>
 </dependency>
 ```
 
@@ -159,8 +159,9 @@ a `TextTranslationOptions`, with the following setters:
     - `Formality.Less`: use informal language.
     - `Formality.More`: use formal, more polite language.
 - `setGlossary()`: specifies a glossary to use with translation, as a string
-  containing the glossary ID, or a `GlossaryInfo` object (this object is
-  returned by glossary lookup functions, for example `listGlossaries()`).
+  containing the glossary ID, or a `GlossaryInfo`/`MultilingualGlossaryInfo` 
+  object (this object is returned by glossary lookup functions, for example 
+  `listGlossaries()` or `listMultilingualGlossaries()`).
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
 - `setContext()`: specifies additional context to influence translations, that is not
@@ -311,20 +312,37 @@ Glossaries allow you to customize your translations using user-defined terms.
 Multiple glossaries can be stored with your account, each with a user-specified
 name and a uniquely-assigned ID.
 
+### v2 versus v3 glossary APIs
+
+The newest version of the glossary APIs are the `/v3` endpoints, allowing both
+editing functionality plus support for multilingual glossaries. New methods and
+objects have been created to support interacting with these new glossaries.
+Due to this new functionality, users are recommended to utilize these
+multilingual glossary methods. However, to continue using the `v2` glossary API
+endpoints, please continue to use the existing endpoints in the `translator.java`
+(e.g. `createGlossary()`, `getGlossary()`, etc).
+
+To migrate to use the new multilingual glossary methods from the current
+monolingual glossary methods, please refer to
+[this migration guide](upgrading_to_multilingual_glossaries.md).
+
+The following sections describe how to interact with multilingual glossaries
+using the new functionality:
+
 #### Creating a glossary
 
-You can create a glossary with `createGlossary()` by passing your desired
-glossary name, and a `GlossaryEntries` object specifying the terms to
+You can create a glossary with `createMultilingualGlossary()` by passing your
+desired glossary name, and a `GlossaryEntries` object specifying the terms to
 store in the glossary.
 
-Each glossary applies to a single source-target language pair. Note: Glossaries
+Each glossary contains a list of dictionaries, where each dictionary applies to a single source-target language pair. Note: Glossaries
 are only supported for some language pairs, see
 [Listing available glossary languages](#listing-available-glossary-languages)
 for more information.
 
 If successful, the glossary is created and stored with your DeepL account, and
-a `GlossaryInfo` object is returned including the ID, name, languages and entry
-count.
+a `MultilingualGlossaryInfo` object is returned including the ID, name, 
+languages and entry count.
 
 ```java
 class Example {  // Continuing class Example from above
@@ -334,16 +352,24 @@ class Example {  // Continuing class Example from above
             put("artist", "Maler");
             put("prize", "Gewinn");
         }};
-        GlossaryInfo myGlossary =
-                client.createGlossary("My glossary", "en", "de", entries);
+        MultilingualGlossaryDictionaryEntries myGlossaryDicts = 
+                Arrays.asList(new MultilingualGlossaryDictionaryEntries(
+                                "en",
+                                "de",
+                                entries
+                              ));
+        MultilingualGlossaryInfo myGlossary =
+                client.createGlossary("My glossary", myGlossaryDicts);
 
-        System.out.printf("Created '%s' (%s) %s->%s containing %d entries\n",
+        System.out.printf("Created '%s' (%s) containing %d dictionary from %s->%s with %d entries\n",
                           myGlossary.getName(),
                           myGlossary.getGlossaryId(),
+                          myGlossary.getDictionaries().length,
                           myGlossary.getSourceLang(),
                           myGlossary.getTargetLang(),
                           myGlossary.getEntryCount());
-        // Example: Created 'My glossary' (559192ed-8e23-...) en->de containing 2 entries
+        // Example: Created 'My glossary' (559192ed-8e23-...) containing 1 
+        // dictionary from en->de containing 2 entries
     }
 }
 ```
@@ -353,18 +379,18 @@ functions like `put()`. The `fromTsv()` function allows creating GlossaryEntries
 from TSV data.
 
 You can also create a glossary using a glossary downloaded from the DeepL
-website by using `createGlossaryFromCsv()` with either a CSV file, or a string
-containing the CSV data:
+website by using `createMultilingualGlossaryFromCsv()` with either a CSV file,
+or a string containing the CSV data:
 
 ```java
 class Example {  // Continuing class Example from above
     public createGlossaryFromCsvExample() throws Exception {
         File csvFile = new File("/path/to/glossary_file.csv");
-        GlossaryInfo myGlossary =
-                client.createGlossaryFromCsv("My glossary",
-                                                 "en",
-                                                 "de",
-                                                 csvFile);
+        MultilingualGlossaryInfo myGlossary =
+                client.createMultilingualGlossaryFromCsv("My glossary",
+                                                         "en",
+                                                         "de",
+                                                         csvFile);
     }
 }
 ```
@@ -372,30 +398,43 @@ class Example {  // Continuing class Example from above
 The [API documentation][api-docs-csv-format] explains the expected CSV format in
 detail.
 
-#### Getting, listing, and deleting stored glossaries
+
+#### Getting, listing and deleting stored glossaries
 
 Functions to get, list, and delete stored glossaries are also provided:
 
-- `getGlossary()` takes a glossary ID and returns a `GlossaryInfo` object for a
-  stored glossary, or throws an exception if no such glossary is found.
-- `listGlossaries()` returns a list of `GlossaryInfo` objects corresponding to
-  all of your stored glossaries.
-- `deleteGlossary()` takes a glossary ID or `GlossaryInfo` object and deletes
-  the stored glossary from the server, or throws an exception if no such
-  glossary is found.
+- `getMultilingualGlossary()` takes a glossary ID and returns a
+  `MultilingualGlossaryInfo` object for a stored glossary, or raises an
+  exception if no such glossary is found.
+- `listMultilingualGlossaries()` returns a list of `MultilingualGlossaryInfo`
+  objects corresponding to all of your stored glossaries.
+- `deleteMultilingualGlossary()` takes a glossary ID or
+  `MultilingualGlossaryInfo` object and deletes the stored glossary from the
+  server, or raises an exception if no such glossary is found.
+- `deleteMultilingualGlossaryDictionary()` takes a glossary ID or
+  `MultilingualGlossaryInfo` object to identify the glossary. Additionally
+  takes in a source and target language or a
+  `MultilingualGlossaryDictionaryInfo` object and deletes the stored dictionary
+  from the server, or raises an exception if no such glossary dictionary is
+  found.
 
 ```java
 class Example {  // Continuing class Example from above
     public getListDeleteGlossaryExamples() throws Exception {
         // Retrieve a stored glossary using the ID
         String glossaryId = "559192ed-8e23-...";
-        GlossaryInfo myGlossary = client.getGlossary(glossaryId);
+        MultilingualGlossaryInfo myGlossary = 
+          client.getMultilingualGlossary(glossaryId);
+
+        client.deleteMultilingualGlossaryDictionary(glossaryId, 
+                                                    myGlossary.getDictionaries()[0]);
 
         // Find and delete glossaries named 'Old glossary'
-        List<GlossaryInfo> glossaries = client.listGlossaries();
-        for (GlossaryInfo glossary : glossaries) {
+        List<MultilingualGlossaryInfo> glossaries = 
+          client.listMultilingualGlossaries();
+        for (MultilingualGlossaryInfo glossary : glossaries) {
             if (glossary.getName() == "Old glossary") {
-                client.deleteGlossary(glossary);
+                client.deleteMultilingualGlossary(glossary);
             }
         }
     }
@@ -404,19 +443,21 @@ class Example {  // Continuing class Example from above
 
 #### Listing entries in a stored glossary
 
-The `GlossaryInfo` object does not contain the glossary entries, but instead
-only the number of entries in the `entry_count` property.
+The `MultilingualGlossaryDictionaryInfo` object does not contain the glossary
+entries, but instead only the number of entries in the `entry_count` property.
 
 To list the entries contained within a stored glossary, use
-`getGlossaryEntries()` providing either the `GlossaryInfo` object or glossary
-ID:
+`getMultilingualGlossaryDictionaryEntries()` providing either the 
+`MultilingualGlossaryInfo` object or glossary ID and either a 
+`MultilingualGlossaryDictionaryInfo` or source and target language pair:
 
 ```java
 class Example {  // Continuing class Example from above
   public getGlossaryEntriesExample() throws Exception {
-      GlossaryEntries entries = client.getGlossaryEntries(myGlossary);
+      List<MultilingualGlossaryDictionaryInfo> glossaryDicts = 
+        client.getMultilingualGlossaryDictionaryEntries(myGlossary, "en", "de");
       
-      for (Map.Entry<String, String> entry : entries.entrySet()) {
+      for (Map.Entry<String, String> entry : glossaryDicts.getDictionaries()[0].getEntries().entrySet()) {
         System.out.println(entry.getKey() + ":" + entry.getValue());
       }
       // prints:
@@ -426,15 +467,140 @@ class Example {  // Continuing class Example from above
 }
 ```
 
+#### Editing a glossary
+
+Functions to edit stored glossaries are also provided:
+
+- `updateMultilingualGlossaryDictionary()` takes a glossary ID or `MultilingualGlossaryInfo`
+  object, plus a source language, target language, and a dictionary of entries.
+  It will then either update the list of entries for that dictionary (either
+  inserting new entires or replacing the target phrase for any existing
+  entries) or will insert a new glossary dictionary if that language pair is
+  not currently in the stored glossary.
+- `replaceMultilingualGlossaryDictionary()` takes a glossary ID or `MultilingualGlossaryInfo`
+  object, plus a source language, target language, and a dictionary of entries.
+  It will then either set the entries to the parameter value, completely
+  replacing any pre-existing entries for that language pair.
+- `updateMultilingualGlossaryName()` takes a glossary ID or `MultilingualGlossaryInfo`
+  object, plus the new name of the glossary.
+
+```java
+// Update glossary dictionary
+class Example {  // Continuing class Example from above
+  public updateGlossaryEntriesExample() throws Exception {
+    GlossaryEntries entries = new GlossaryEntries() {{
+              put("artist", "Maler");
+              put("hello", "guten tag");
+          }};
+    List<MultilingualGlossaryDictionaryEntries> dictionaries = 
+      Arrays.asList(new MultilingualGlossaryDictionaryEntries("EN", "DE", entries));
+    MultilingualGlossaryInfo myGlossary = client.createMultilingualGlossary(
+        "My glossary",
+        dictionaries
+    );
+
+    GlossaryEntries newEntries = new GlossaryEntries() {{
+              put("hello", "hallo");
+              put("prize", "Gewinn");
+          }};
+
+    MultilingualGlossaryDictionaryEntries glossaryDict = 
+      new MultilingualGlossaryDictionaryEntries("EN", "DE", newEntries);
+
+    MultilingualGlossaryInfo updatedGlossary = 
+      client.updateMultilingualGlossaryDictionary(myGlossary, glossaryDict);
+
+    MultilingualGlossaryInfo entriesResponse = 
+      client.getMultilingualGlossaryDictionaryEntries(myGlossary, "EN", "DE");
+
+    for (Map.Entry<String, String> entry : glossaryDicts.getDictionaries()[0].getEntries().entrySet()) {
+      System.out.println(entry.getKey() + ":" + entry.getValue());
+    }
+    
+    // prints:
+    //   artist:Maler
+    //   hello:hallo
+    //   prize:Gewinn
+  }
+
+  // Update a glossary dictionary from CSV
+  public updateGlossaryEntriesFromCsvExample() throws Exception {
+    File csvFile = new File("/path/to/glossary_file.csv");
+    String glossaryId = "559192ed-8e23-...";
+    MultilingualGlossaryInfo myGlossary =
+      client.createMultilingualGlossaryDictionaryFromCsv(glossaryId,
+                                                        "en",
+                                                        "de",
+                                                        csvFile);
+  }
+
+
+  // Update a glossary name
+  public void updateGlossaryNameExample() throws Exception {
+    String glossaryId = "559192ed-8e23-...";
+    MultilingualGlossaryInfo myGlossary =
+      client.updateMultilingualName(glossaryId, "My new glossary name");
+    System.out.println(myGlossary.getName()); // 'My new glossary name'
+  }
+
+  // Replace a glossary dictionary
+  public void replaceGlossaryEntriesExample() throws Exception {
+    GlossaryEntries entries = new GlossaryEntries() {{
+              put("artist", "Maler");
+              put("hello", "guten tag");
+          }};
+    List<MultilingualGlossaryDictionaryEntries> dictionaries = 
+      Arrays.asList(new MultilingualGlossaryDictionaryEntries("EN", "DE", entries));
+    MultilingualGlossaryInfo myGlossary = client.createMultilingualGlossary(
+        "My glossary",
+        dictionaries
+    );
+
+    GlossaryEntries newEntries = new GlossaryEntries() {{
+              put("goodbye", "Auf Weidersehen");
+          }};
+
+    MultilingualGlossaryDictionaryEntries glossaryDict = 
+      new MultilingualGlossaryDictionaryEntries("EN", "DE", newEntries);
+
+    MultilingualGlossaryInfo updatedGlossary = 
+      client.replaceMultilingualGlossaryDictionary(myGlossary, glossaryDict);
+
+    MultilingualGlossaryInfo entriesResponse = 
+      client.getMultilingualGlossaryDictionaryEntries(myGlossary, "EN", "DE");
+
+    for (Map.Entry<String, String> entry : glossaryDicts.getDictionaries()[0].getEntries().entrySet()) {
+      System.out.println(entry.getKey() + ":" + entry.getValue());
+    }
+    
+    // prints:
+    //   goodbye:Auf Weidersehen
+  }
+
+  // Replace a glossary dictionary from CSV
+  public void replaceGlossaryEntriesFromCsvExample() throws Exception {
+    File csvFile = new File("/path/to/glossary_file.csv");
+    String glossaryId = "559192ed-8e23-...";
+    MultilingualGlossaryInfo myGlossary =
+      client.replaceMultilingualGlossaryDictionaryFromCsv(glossaryId,
+                                                          "en",
+                                                          "de",
+                                                          csvFile);
+    MultilingualGlossaryInfo entriesResponse = 
+      client.getMultilingualGlossaryDictionaryEntries(myGlossary, "EN", "DE");
+  }
+}
+```
+
 #### Using a stored glossary
 
 You can use a stored glossary for text translation by setting the `glossary`
-argument to either the glossary ID or `GlossaryInfo` object. You must also
+argument to either the glossary ID or `MultilingualGlossaryInfo` object. You must also
 specify the `source_lang` argument (it is required when using a glossary):
 
 ```java
 class Example {  // Continuing class Example from above
-    public usingGlossaryExample() throws Exception {
+    public boid usingGlossaryExample() throws Exception {
         String text = "The artist was awarded a prize.";
         TextTranslationOptions options =
                 new TextTranslationOptions().setGlossary(my_glossary);
@@ -455,7 +621,7 @@ argument and specify the `source_lang` argument:
 
 ```java
 class Example {  // Continuing class Example from above
-    public getListDeleteGlossaryExamples() throws Exception {
+    public boid getListDeleteGlossaryExamples() throws Exception {
         String glossaryId = "559192ed-8e23-...";
         DocumentTranslationOptions options =
                 new DocumentTranslationOptions().setGlossary(glossaryId);
@@ -634,6 +800,10 @@ The available options setters are:
 - `setServerUrl()`: base URL for DeepL API, may be overridden for testing
   purposes. By default, the correct DeepL API (Free or Pro) is automatically
   selected.
+- `setApiVersion()`: Version of the DeepL API, may be overridden to use e.g.
+  the v1 API. By default, the most recent API version is automatically selected.
+  Please note: The v1 API does not support all features of the API, e.g.
+  document translation or rephrase.
 
 #### Anonymous platform information
 

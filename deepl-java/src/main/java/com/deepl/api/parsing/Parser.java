@@ -62,9 +62,28 @@ public class Parser {
     return gson.fromJson(json, GlossaryInfo.class);
   }
 
+  public MultilingualGlossaryInfo parseMultilingualGlossaryInfo(String json) {
+    return gson.fromJson(json, MultilingualGlossaryInfo.class);
+  }
+
+  public MultilingualGlossaryDictionaryListResponse parseMultilingualGlossaryDictionaryListResponse(
+      String json) {
+    return gson.fromJson(json, MultilingualGlossaryDictionaryListResponse.class);
+  }
+
   public List<GlossaryInfo> parseGlossaryInfoList(String json) {
     GlossaryListResponse result = gson.fromJson(json, GlossaryListResponse.class);
     return result.getGlossaries();
+  }
+
+  public List<MultilingualGlossaryInfo> parseMultilingualGlossaryInfoList(String json) {
+    MultilingualGlossaryListResponse result =
+        gson.fromJson(json, MultilingualGlossaryListResponse.class);
+    return result.getGlossaries();
+  }
+
+  public MultilingualGlossaryDictionaryInfo parseMultilingualGlossaryDictionaryInfo(String json) {
+    return gson.fromJson(json, MultilingualGlossaryDictionaryInfo.class);
   }
 
   public String parseErrorMessage(String json) {

@@ -8,7 +8,7 @@ import java.util.*;
 import org.jetbrains.annotations.*;
 
 /** Information about a glossary, excluding the entry list. */
-public class GlossaryInfo {
+public class GlossaryInfo implements IGlossary {
 
   @SerializedName(value = "glossary_id")
   private final String glossaryId;

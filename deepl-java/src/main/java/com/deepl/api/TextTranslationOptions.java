@@ -52,7 +52,7 @@ public class TextTranslationOptions {
    * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
    * no glossary is used.
    */
-  public TextTranslationOptions setGlossary(GlossaryInfo glossary) {
+  public TextTranslationOptions setGlossary(IGlossary glossary) {
     return setGlossary(glossary.getGlossaryId());
   }
 

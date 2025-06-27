@@ -43,7 +43,7 @@ public class DocumentTranslationOptions {
    * Sets the glossary to use with the translation. By default, this value is <code>null</code> and
    * no glossary is used.
    */
-  public DocumentTranslationOptions setGlossary(GlossaryInfo glossary) {
+  public DocumentTranslationOptions setGlossary(IGlossary glossary) {
     return setGlossary(glossary.getGlossaryId());
   }
 

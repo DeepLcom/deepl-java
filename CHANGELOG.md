@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+<!-- * add to here -->
+### Changed
+<!-- * add to here -->
+
+
+## [1.10.1] - 2025-06-18
+### Fixed
+* Fixed `DeepLClient::deleteMultilingualGlossary(String glossaryId)` being package private, made it public instead.
+  * Thanks to [MTSxoff](https://github.com/MTSxoff) for the report in [#68](https://github.com/DeepLcom/deepl-java/issues/68) and the fix in [#69](https://github.com/DeepLcom/deepl-java/pull/69).
+
+
+## [1.10.0] - 2025-04-30
+### Added
+* Added support for the /v3 Multilingual Glossary APIs in the client library
+  while providing backwards compatability for the previous /v2 Glossary
+  endpoints. Please refer to the README or
+  [upgrading_to_multilingual_glossaries.md](upgrading_to_multilingual_glossaries.md)
+  for usage instructions.
+* Added Ukrainian language code
+
+
+## [1.9.0] - 2025-02-21
+### Added
+* Allow specifying the API version to use. This is mostly for users who have an
+  API subscription that includes an API key for CAT tool usage, who need to use
+  the v1 API.
+
 
 ## [1.8.1] - 2025-02-07
 ### Fixed
@@ -143,6 +172,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/DeepLcom/deepl-java/compare/v1.10.0...v1.10.1
+[1.10.0]: https://github.com/DeepLcom/deepl-java/compare/v1.9.0...v1.10.0
+[1.9.0]: https://github.com/DeepLcom/deepl-java/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/DeepLcom/deepl-java/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/DeepLcom/deepl-java/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/DeepLcom/deepl-java/compare/v1.6.0...v1.7.0

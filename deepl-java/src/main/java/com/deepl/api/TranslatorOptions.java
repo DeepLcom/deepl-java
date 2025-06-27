@@ -26,10 +26,13 @@ public class TranslatorOptions {
   @Nullable private String serverUrl = null;
   private boolean sendPlatformInfo = true;
   @Nullable private AppInfo appInfo = null;
+  @Nullable protected DeepLApiVersion apiVersion = null;
 
   /** @deprecated Use {@link DeepLClient} instead. */
   @Deprecated
-  public TranslatorOptions() {}
+  public TranslatorOptions() {
+    apiVersion = DeepLApiVersion.VERSION_2;
+  }
 
   /**
    * Set the maximum number of failed attempts that {@link Translator} will retry, per request. By

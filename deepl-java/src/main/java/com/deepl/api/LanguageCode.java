@@ -113,6 +113,9 @@ public class LanguageCode {
   /** Turkish language code, may be used as source or target language. */
   public static final String Turkish = "tr";
 
+  /** Ukrainian language code, may be used as source or target language. */
+  public static final String Ukrainian = "uk";
+
   /** Chinese language code, may be used as source or target language. */
   public static final String Chinese = "zh";
 
