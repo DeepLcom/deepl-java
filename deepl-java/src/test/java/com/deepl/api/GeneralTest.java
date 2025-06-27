@@ -30,6 +30,16 @@ class GeneralTest extends TestBase {
   }
 
   @Test
+  void testNullAuthKey() {
+    IllegalArgumentException thrown =
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              Translator translator = new Translator(null);
+            });
+  }
+
+  @Test
   void testInvalidAuthKey() {
     String authKey = "invalid";
     Translator translator = new Translator(authKey);
