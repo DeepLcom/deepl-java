@@ -5,10 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-<!-- * add to here -->
-### Changed
-<!-- * add to here -->
+### Security
+* Updated `org.apache.httpcomponents:httpclient` to 4.5.14 due to [CVE-2020-13956](https://nvd.nist.gov/vuln/detail/CVE-2020-13956).
+ * Thanks to [warm-tune](https://github.com/warm-tune) for reporting in [#72](https://github.com/DeepLcom/deepl-java/issues/72).
 
 
 ## [1.10.2] - 2025-07-11
