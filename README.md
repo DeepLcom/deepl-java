@@ -58,11 +58,10 @@ Be careful not to expose your key, for example when sharing source code.
 import com.deepl.api.*;
 
 class Example {
-    DeepLClient client;
-
     public Example() throws Exception {
         String authKey = "f63c02c5-f056-...";  // Replace with your key
-        translator = new Translator(authKey);
+        Translator translator = new Translator(authKey);
+
         TextResult result =
             translator.translateText("Hello, world!", null, "fr");
         System.out.println(result.getText()); // "Bonjour, le monde !"
