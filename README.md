@@ -62,9 +62,9 @@ class Example {
 
     public Example() throws Exception {
         String authKey = "f63c02c5-f056-...";  // Replace with your key
-        client = new DeepLClient(authKey);
+        translator = new Translator(authKey);
         TextResult result =
-                client.translateText("Hello, world!", null, "fr");
+            translator.translateText("Hello, world!", null, "fr");
         System.out.println(result.getText()); // "Bonjour, le monde !"
     }
 }
