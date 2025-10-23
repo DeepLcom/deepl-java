@@ -13,7 +13,7 @@ package com.deepl.api;
  *          .setFormality(Formality.Less).setGlossaryId("f63c02c5-f056-..");
  * </code>
  */
-public class DocumentTranslationOptions {
+public class DocumentTranslationOptions extends BaseRequestOptions {
   private Formality formality;
   private String glossaryId;
 

@@ -846,6 +846,7 @@ public class Translator {
       if (options.getIgnoreTags() != null) {
         params.add(new KeyValuePair<>("ignore_tags", joinTags(options.getIgnoreTags())));
       }
+      addExtraBodyParameters(params, options.getExtraBodyParameters());
     }
     return params;
   }
@@ -862,11 +863,16 @@ public class Translator {
    */
   protected static ArrayList<KeyValuePair<String, String>> createHttpParams(
       String sourceLang, String targetLang, DocumentTranslationOptions options) {
-    return createHttpParamsCommon(
-        sourceLang,
-        targetLang,
-        options != null ? options.getFormality() : null,
-        options != null ? options.getGlossaryId() : null);
+    ArrayList<KeyValuePair<String, String>> params =
+        createHttpParamsCommon(
+            sourceLang,
+            targetLang,
+            options != null ? options.getFormality() : null,
+            options != null ? options.getGlossaryId() : null);
+
+    addExtraBodyParameters(params, options != null ? options.getExtraBodyParameters() : null);
+
+    return params;
   }
 
   /**
@@ -929,6 +935,23 @@ public class Translator {
   /** Combine XML tags with comma-delimiter to be included in HTTP request parameters. */
   private static String joinTags(Iterable<String> tags) {
     return String.join(",", tags);
+  }
+
+  /**
+   * Adds extra body parameters to the HTTP request parameters. Extra parameters can override
+   * existing parameters.
+   *
+   * @param params List of HTTP parameters to add to.
+   * @param extraBodyParameters Map of extra parameters to add (can be null).
+   */
+  private static void addExtraBodyParameters(
+      ArrayList<KeyValuePair<String, String>> params, Map<String, String> extraBodyParameters) {
+    if (extraBodyParameters != null) {
+      params.removeIf(pair -> extraBodyParameters.containsKey(pair.getKey()));
+      for (Map.Entry<String, String> entry : extraBodyParameters.entrySet()) {
+        params.add(new KeyValuePair<>(entry.getKey(), entry.getValue()));
+      }
+    }
   }
 
   /**

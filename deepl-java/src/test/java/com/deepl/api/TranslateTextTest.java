@@ -330,4 +330,23 @@ public class TranslateTextTest extends TestBase {
     Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
   }
+
+  @Test
+  void testExtraBodyParams() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+
+    // Verifies that extra_body_parameters can override standard parameters like target_lang
+    Map<String, String> extraParams = new HashMap<>();
+    extraParams.put("target_lang", "FR");
+    extraParams.put("debug", "1");
+
+    TextTranslationOptions options = new TextTranslationOptions();
+    options.setExtraBodyParameters(extraParams);
+
+    TextResult result = translator.translateText(exampleText.get("en"), null, "DE", options);
+
+    Assertions.assertEquals(exampleText.get("fr"), result.getText());
+    Assertions.assertEquals("en", result.getDetectedSourceLanguage());
+    Assertions.assertEquals(exampleText.get("en").length(), result.getBilledCharacters());
+  }
 }
