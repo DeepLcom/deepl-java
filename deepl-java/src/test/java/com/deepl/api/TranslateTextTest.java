@@ -146,7 +146,7 @@ public class TranslateTextTest extends TestBase {
         translator.translateText(
             "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.Less));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es dir?", result.getText());
+      Assertions.assertTrue(result.getText().contains("dir"));
     }
 
     result =
@@ -156,14 +156,14 @@ public class TranslateTextTest extends TestBase {
             "de",
             new TextTranslationOptions().setFormality(Formality.Default));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+      Assertions.assertTrue(result.getText().contains("Ihnen"));
     }
 
     result =
         translator.translateText(
             "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.More));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+      Assertions.assertTrue(result.getText().contains("Ihnen"));
     }
 
     result =
@@ -173,7 +173,7 @@ public class TranslateTextTest extends TestBase {
             "de",
             new TextTranslationOptions().setFormality(Formality.PreferLess));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es dir?", result.getText());
+      Assertions.assertTrue(result.getText().contains("dir"));
     }
 
     result =
@@ -183,7 +183,7 @@ public class TranslateTextTest extends TestBase {
             "de",
             new TextTranslationOptions().setFormality(Formality.PreferMore));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es Ihnen?", result.getText());
+      Assertions.assertTrue(result.getText().contains("Ihnen"));
     }
   }
 

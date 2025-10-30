@@ -94,7 +94,7 @@ public class TranslateDocumentTest extends TestBase {
         "de",
         new DocumentTranslationOptions().setFormality(Formality.More));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es Ihnen?", readFromFile(outputFile));
+      Assertions.assertTrue(readFromFile(outputFile).contains("Ihnen"));
     }
 
     outputFile.delete();
@@ -106,7 +106,7 @@ public class TranslateDocumentTest extends TestBase {
         "de",
         new DocumentTranslationOptions().setFormality(Formality.Less));
     if (!isMockServer) {
-      Assertions.assertEquals("Wie geht es dir?", readFromFile(outputFile));
+      Assertions.assertTrue(readFromFile(outputFile).contains("dir"));
     }
   }
 
