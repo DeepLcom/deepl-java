@@ -1,0 +1,22 @@
+# Configuration file for bumpversion
+# See https://github.com/callowayproject/bump-my-version
+[tool.bumpversion]
+current_version = "1.10.3"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+regex = false
+ignore_missing_version = false
+tag = false
+allow_dirty = false
+commit = false
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+
+[[tool.bumpversion.files]]
+filename = "deepl-java/build.gradle.kts"
+
+[[tool.bumpversion.files]]
+filename = "deepl-java/src/main/java/com/deepl/api/Translator.java"
