@@ -127,7 +127,7 @@ build_manual:
   parallel:
     matrix:
       - DOCKER_IMAGE: "eclipse-temurin:18-alpine"
-      - DOCKER_IMAGE: "openjdk:8-alpine"
+      - DOCKER_IMAGE: "amazoncorretto:8-alpine"
         USE_MOCK_SERVER: "use mock server"
       - DOCKER_IMAGE: "eclipse-temurin:8-focal"
         USE_MOCK_SERVER: "use mock server"
