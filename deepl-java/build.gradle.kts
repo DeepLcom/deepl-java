@@ -1,3 +1,7 @@
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Base64
+
 plugins {
     `java-library`
     `maven-publish`
@@ -122,5 +126,37 @@ signing {
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications["mavenJava"])
+}
+
+tasks.register("triggerDeployment") {
+    doLast {
+        val mavenUploadUsername: String? by project
+        val mavenUploadPassword: String? by project
+        val namespace = "com.deepl.api"
+        val url = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$namespace?publishing_type=automatic"
+
+        val credentials = "$mavenUploadUsername:$mavenUploadPassword"
+        val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
+
+        val connection = URL(url).openConnection() as HttpURLConnection
+        connection.requestMethod = "POST"
+        connection.setRequestProperty("Authorization", "Bearer $encodedCredentials")
+        connection.doOutput = true
+        connection.outputStream.write(byteArrayOf())
+
+        val responseCode = connection.responseCode
+        val response = if (responseCode == 200) {
+            connection.inputStream.bufferedReader().readText()
+        } else {
+            connection.errorStream.bufferedReader().readText()
+        }
+
+        println(response)
+        println("HTTP Status: $responseCode")
+
+        if (responseCode != 200) {
+            throw GradleException("Failed to trigger deployment: $responseCode - $response")
+        }
+    }
 }
 
