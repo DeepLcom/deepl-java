@@ -135,6 +135,9 @@ tasks.register("triggerDeployment") {
         val namespace = "com.deepl.api"
         val url = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$namespace?publishing_type=automatic"
 
+        println("Triggering deployment for namespace: $namespace")
+        println("Endpoint: $url")
+
         val credentials = "$mavenUploadUsername:$mavenUploadPassword"
         val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
 
@@ -148,15 +151,19 @@ tasks.register("triggerDeployment") {
         val response = if (responseCode == 200) {
             connection.inputStream.bufferedReader().readText()
         } else {
-            connection.errorStream.bufferedReader().readText()
+            connection.errorStream?.bufferedReader()?.readText() ?: "No error response"
         }
 
-        println(response)
-        println("HTTP Status: $responseCode")
+        println("Response code: $responseCode")
+        if (response.isNotBlank()) {
+            println("Response body: $response")
+        }
 
         if (responseCode != 200) {
-            throw GradleException("Failed to trigger deployment: $responseCode - $response")
+            throw GradleException("Failed to trigger deployment: HTTP $responseCode - $response")
         }
+
+        println("Deployment triggered successfully")
     }
 }
 

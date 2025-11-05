@@ -211,7 +211,13 @@ test_examples_manual:
     - build_scheduled
     - build_manual
   script:
-    - ./gradlew publish
+    - echo "=== Publishing to Maven Central ==="
+    - echo "Runner node $(hostname)"
+    - echo ""
+    - echo "Step 1/2 Publishing artifacts to staging repository..."
+    - ./gradlew publish --info
+    - echo ""
+    - echo "Step 2/2 Triggering deployment from same IP..."
     # Trigger deployment from same IP to ensure Sonatype can find the staging repository
     - ./gradlew triggerDeployment
 
