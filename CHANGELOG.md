@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2025-11-12
+### Added
+- Added support for the `GET /v3/style_rules` endpoint in the client library, the
+  implementation can be found in the `DeepLClient` class. Please refer to the
+  README for usage instructions
+- Added `styleId` option to `translateText()` which allows text translation with
+  style rules.
+
 ## [1.11.0] - 2025-11-04
 ### Added
 - Added `extraRequestParameters` option to text and document translation methods to pass arbitrary parameters in the request body. This can be used to access beta features or override built-in parameters (such as `target_lang`, `source_lang`, etc.).
@@ -170,7 +178,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2022-09-08
 Initial version.
 
-[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/DeepLcom/deepl-java/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/DeepLcom/deepl-java/compare/v1.10.3...v1.11.0
 [1.10.3]: https://github.com/DeepLcom/deepl-java/compare/v1.10.2...v1.10.3
 [1.10.2]: https://github.com/DeepLcom/deepl-java/compare/v1.10.1...v1.10.2
