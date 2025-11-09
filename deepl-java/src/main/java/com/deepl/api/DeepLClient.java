@@ -732,6 +732,68 @@ public class DeepLClient extends Translator {
         glossaryDict.getTargetLanguageCode());
   }
 
+  /**
+   * Retrieves the list of all available style rules and returns a list of {@link StyleRuleInfo}
+   * objects corresponding to all of your stored style rules.
+   *
+   * @param page Optional page number for pagination, 0-indexed.
+   * @param pageSize Optional number of items per page.
+   * @param detailed Optional flag indicating whether to include detailed configuration rules
+   *     including the configuredRules and customInstructions properties.
+   * @return List of {@link StyleRuleInfo} objects for all available style rules.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API, a {@link
+   *     DeepLException} or a derived class will be thrown.
+   */
+  public List<StyleRuleInfo> getAllStyleRules(
+      @Nullable Integer page, @Nullable Integer pageSize, @Nullable Boolean detailed)
+      throws DeepLException, InterruptedException {
+    ArrayList<KeyValuePair<String, String>> queryParams = new ArrayList<>();
+    if (page != null) {
+      queryParams.add(new KeyValuePair<>("page", page.toString()));
+    }
+    if (pageSize != null) {
+      queryParams.add(new KeyValuePair<>("page_size", pageSize.toString()));
+    }
+    if (detailed != null) {
+      queryParams.add(new KeyValuePair<>("detailed", detailed.toString().toLowerCase()));
+    }
+
+    String queryString = "";
+    if (!queryParams.isEmpty()) {
+      StringBuilder sb = new StringBuilder("?");
+      for (int i = 0; i < queryParams.size(); i++) {
+        if (i > 0) {
+          sb.append("&");
+        }
+        KeyValuePair<String, String> param = queryParams.get(i);
+        try {
+          sb.append(URLEncoder.encode(param.getKey(), StandardCharsets.UTF_8.name()))
+              .append("=")
+              .append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8.name()));
+        } catch (java.io.UnsupportedEncodingException e) {
+          throw new RuntimeException("UTF-8 encoding not supported", e);
+        }
+      }
+      queryString = sb.toString();
+    }
+
+    String relativeUrl = "/v3/style_rules" + queryString;
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseStyleRuleInfoList(response.getBody());
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#getAllStyleRules(Integer, Integer, Boolean)} but with
+   * default parameters (all null).
+   *
+   * @see DeepLClient#getAllStyleRules(Integer, Integer, Boolean)
+   */
+  public List<StyleRuleInfo> getAllStyleRules() throws DeepLException, InterruptedException {
+    return getAllStyleRules(null, null, null);
+  }
+
   /** Creates a glossary with given details. */
   private MultilingualGlossaryInfo createGlossaryFromCsvInternal(
       String name, String sourceLanguageCode, String targetLanguageCode, String entries)

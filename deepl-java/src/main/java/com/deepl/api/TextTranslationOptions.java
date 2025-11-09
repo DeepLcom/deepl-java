@@ -16,6 +16,7 @@ package com.deepl.api;
 public class TextTranslationOptions extends BaseRequestOptions {
   private Formality formality;
   private String glossaryId;
+  private String styleId;
   private SentenceSplittingMode sentenceSplittingMode;
   private boolean preserveFormatting = false;
   private String context;
@@ -63,6 +64,23 @@ public class TextTranslationOptions extends BaseRequestOptions {
   public TextTranslationOptions setGlossary(String glossaryId) {
     this.glossaryId = glossaryId;
     return this;
+  }
+
+  /**
+   * Sets the ID of a style rule to use with the translation. By default, this value is <code>
+   * null</code> and no style rule is used.
+   */
+  public TextTranslationOptions setStyleId(String styleId) {
+    this.styleId = styleId;
+    return this;
+  }
+
+  /**
+   * Sets the style rule to use with the translation. By default, this value is <code>null</code>
+   * and no style rule is used.
+   */
+  public TextTranslationOptions setStyleRule(StyleRuleInfo styleRule) {
+    return setStyleId(styleRule.getStyleId());
   }
 
   /**
@@ -165,6 +183,11 @@ public class TextTranslationOptions extends BaseRequestOptions {
   /** Gets the current glossary ID. */
   public String getGlossaryId() {
     return glossaryId;
+  }
+
+  /** Gets the current style rule ID. */
+  public String getStyleId() {
+    return styleId;
   }
 
   /** Gets the current sentence splitting mode. */

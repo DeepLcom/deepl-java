@@ -92,7 +92,7 @@ public class Translator {
    */
   private String constructUserAgentString(boolean sendPlatformInfo, AppInfo appInfo) {
     StringBuilder sb = new StringBuilder();
-    sb.append("deepl-java/1.11.0");
+    sb.append("deepl-java/1.12.0");
     if (sendPlatformInfo) {
       sb.append(" (");
       Properties props = System.getProperties();
@@ -845,6 +845,9 @@ public class Translator {
       }
       if (options.getIgnoreTags() != null) {
         params.add(new KeyValuePair<>("ignore_tags", joinTags(options.getIgnoreTags())));
+      }
+      if (options.getStyleId() != null) {
+        params.add(new KeyValuePair<>("style_id", options.getStyleId()));
       }
       addExtraBodyParameters(params, options.getExtraBodyParameters());
     }

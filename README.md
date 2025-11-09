@@ -164,6 +164,9 @@ a `TextTranslationOptions`, with the following setters:
   `listGlossaries()` or `listMultilingualGlossaries()`).
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
+- `setStyleRule()`: specifies a style rule to use with translation, as a string
+  containing the ID of the style rule, or a `StyleRuleInfo` object.
+    - `setStyleId()` is also available, accepting a string containing the style rule ID.
 - `setContext()`: specifies additional context to influence translations, that is not
   translated itself. Characters in the `context` parameter are not counted toward billing.  
   See the [API documentation][api-docs-context-param] for more information and
@@ -639,6 +642,66 @@ class Example {  // Continuing class Example from above
 
 The `translateDocument()` and `translateDocumentUpload()` functions both
 support the `glossary` argument.
+
+### Style Rules
+
+Style rules allow you to customize your translations using a managed, shared list
+of rules for style, formatting, and more. Multiple style rules can be stored with
+your account, each with a user-specified name and a uniquely-assigned ID.
+
+#### Creating and managing style rules
+
+Currently style rules must be created and managed in the DeepL UI via
+https://www.deepl.com/en/custom-rules. Full CRUD functionality via the APIs will
+come shortly.
+
+#### Listing all style rules
+
+`getAllStyleRules()` returns a list of `StyleRuleInfo` objects
+corresponding to all of your stored style rules. The method accepts optional
+parameters: `page` (page number for pagination, 0-indexed), `pageSize` (number
+of items per page), and `detailed` (whether to include detailed configuration
+rules in the `configuredRules` property).
+
+```java
+class Example {  // Continuing class Example from above
+    public void styleRulesExample() throws Exception {
+        // Get all style rules
+        List<StyleRuleInfo> styleRules = client.getAllStyleRules();
+        for (StyleRuleInfo rule : styleRules) {
+            System.out.println(String.format("%s (%s)", rule.getName(), rule.getStyleId()));
+        }
+
+        // Get style rules with detailed configuration
+        List<StyleRuleInfo> styleRulesDetailed = client.getAllStyleRules(null, null, true);
+        for (StyleRuleInfo rule : styleRulesDetailed) {
+            if (rule.getConfiguredRules() != null && rule.getConfiguredRules().getNumbers() != null) {
+                System.out.println(String.format("Number formatting rules: %s",
+                    String.join(", ", rule.getConfiguredRules().getNumbers().keySet())));
+            }
+        }
+    }
+}
+```
+
+#### Using a stored style rule
+
+You can use a stored style rule for text translation by setting the `styleRule`
+argument to either the style rule ID or `StyleRuleInfo` object:
+
+```java
+class Example {  // Continuing class Example from above
+    public void usingStyleRuleExample() throws Exception {
+        String styleId = "dca2e053-8ae5-45e6-a0d2-881156e7f4e4";
+        TextResult result = client.translateText(
+            "Hallo, Welt!",
+            "de",
+            "en-US",
+            new TextTranslationOptions().setStyleId(styleId));
+        System.out.println(result.getText());
+    }
+}
+```
 
 ### Checking account usage
 

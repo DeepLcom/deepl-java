@@ -86,6 +86,11 @@ public class Parser {
     return gson.fromJson(json, MultilingualGlossaryDictionaryInfo.class);
   }
 
+  public List<StyleRuleInfo> parseStyleRuleInfoList(String json) {
+    StyleRuleListResponse result = gson.fromJson(json, StyleRuleListResponse.class);
+    return result.getStyleRules();
+  }
+
   public String parseErrorMessage(String json) {
     ErrorResponse response = gson.fromJson(json, ErrorResponse.class);
 
