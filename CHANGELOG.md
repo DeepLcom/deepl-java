@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2025-12-03
+### Added
+- Added `setCustomInstructions()` method to `TextTranslationOptions` to
+  customize translation behavior with up to 10 instructions (max 300 characters
+  each). Only supported for target languages: `de`, `en`, `es`, `fr`, `it`,
+  `ja`, `ko`, `zh` and their variants.
+
+  Note: using the custom instructions parameter will use `quality_optimized`
+  model type as the default. Requests combining custom instructions and the
+  `latency_optimized` model type will be rejected.
+
 ## [1.12.0] - 2025-11-12
 ### Added
 - Added support for the `GET /v3/style_rules` endpoint in the client library, the
@@ -178,7 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2022-09-08
 Initial version.
 
-[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/DeepLcom/deepl-java/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/DeepLcom/deepl-java/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/DeepLcom/deepl-java/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/DeepLcom/deepl-java/compare/v1.10.3...v1.11.0
 [1.10.3]: https://github.com/DeepLcom/deepl-java/compare/v1.10.2...v1.10.3
