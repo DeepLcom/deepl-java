@@ -26,6 +26,7 @@ public class TextTranslationOptions extends BaseRequestOptions {
   private Iterable<String> ignoreTags;
   private Iterable<String> nonSplittingTags;
   private Iterable<String> splittingTags;
+  private Iterable<String> customInstructions;
 
   /**
    * Sets whether translations should lean toward formal or informal language. This option is only
@@ -175,6 +176,15 @@ public class TextTranslationOptions extends BaseRequestOptions {
     return this;
   }
 
+  /**
+   * Sets custom instructions to influence translations. By default, this value is <code>null</code>
+   * and no custom instructions are used.
+   */
+  public TextTranslationOptions setCustomInstructions(Iterable<String> customInstructions) {
+    this.customInstructions = customInstructions;
+    return this;
+  }
+
   /** Gets the current formality setting. */
   public Formality getFormality() {
     return formality;
@@ -233,5 +243,10 @@ public class TextTranslationOptions extends BaseRequestOptions {
   /** Gets the current splitting tags list. */
   public Iterable<String> getSplittingTags() {
     return splittingTags;
+  }
+
+  /** Gets the current custom instructions list. */
+  public Iterable<String> getCustomInstructions() {
+    return customInstructions;
   }
 }

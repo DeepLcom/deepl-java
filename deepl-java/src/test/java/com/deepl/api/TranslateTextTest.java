@@ -349,4 +349,27 @@ public class TranslateTextTest extends TestBase {
     Assertions.assertEquals("en", result.getDetectedSourceLanguage());
     Assertions.assertEquals(exampleText.get("en").length(), result.getBilledCharacters());
   }
+
+  @Test
+  void testCustomInstructions() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String text = "Hello world. I am testing if custom instructions are working correctly.";
+
+    TextResult resultWithCustomInstructions =
+        translator.translateText(
+            text,
+            null,
+            "de",
+            new TextTranslationOptions()
+                .setCustomInstructions(Arrays.asList("Use informal language", "Be concise")));
+
+    TextResult resultWithoutCustomInstructions = translator.translateText(text, null, "de");
+
+    Assertions.assertNotNull(resultWithCustomInstructions.getText());
+    Assertions.assertEquals("en", resultWithCustomInstructions.getDetectedSourceLanguage());
+    if (!isMockServer) {
+      Assertions.assertFalse(
+          resultWithCustomInstructions.getText().equals(resultWithoutCustomInstructions.getText()));
+    }
+  }
 }

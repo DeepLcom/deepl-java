@@ -168,9 +168,16 @@ a `TextTranslationOptions`, with the following setters:
   containing the ID of the style rule, or a `StyleRuleInfo` object.
     - `setStyleId()` is also available, accepting a string containing the style rule ID.
 - `setContext()`: specifies additional context to influence translations, that is not
-  translated itself. Characters in the `context` parameter are not counted toward billing.  
+  translated itself. Characters in the `context` parameter are not counted toward billing.
   See the [API documentation][api-docs-context-param] for more information and
   example usage.
+- `setCustomInstructions()`: an array of instructions to customize the translation behavior.
+  Up to 10 custom instructions can be specified, each with a maximum of 300 characters.
+  Important: The target language must be `de`, `en`, `es`, `fr`, `it`, `ja`, `ko`, `zh`
+  or any variants of these languages.
+  Note: Any request with the custom instructions parameter enabled will use the
+  `quality_optimized` model type as the default. Requests combining custom instructions
+  and `model_type: latency_optimized` will be rejected.
 - `model_type`: specifies the type of translation model to use, options are:
   - `'quality_optimized'`: use a translation model that maximizes translation quality,
     at the cost of response time. This option may be unavailable for some language pairs.

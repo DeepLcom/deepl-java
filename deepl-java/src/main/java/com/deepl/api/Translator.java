@@ -849,6 +849,11 @@ public class Translator {
       if (options.getStyleId() != null) {
         params.add(new KeyValuePair<>("style_id", options.getStyleId()));
       }
+      if (options.getCustomInstructions() != null) {
+        for (String instruction : options.getCustomInstructions()) {
+          params.add(new KeyValuePair<>("custom_instructions", instruction));
+        }
+      }
       addExtraBodyParameters(params, options.getExtraBodyParameters());
     }
     return params;
