@@ -21,6 +21,7 @@ public class TextTranslationOptions extends BaseRequestOptions {
   private boolean preserveFormatting = false;
   private String context;
   private String tagHandling;
+  private String tagHandlingVersion;
   private String modelType;
   private boolean outlineDetection = true;
   private Iterable<String> ignoreTags;
@@ -127,6 +128,15 @@ public class TextTranslationOptions extends BaseRequestOptions {
   }
 
   /**
+   * Sets the version of tag handling algorithm to use. By default, this value is <code>null</code>
+   * and the API default is used.
+   */
+  public TextTranslationOptions setTagHandlingVersion(String tagHandlingVersion) {
+    this.tagHandlingVersion = tagHandlingVersion;
+    return this;
+  }
+
+  /**
    * Set the type of model to use for a text translation. Currently supported values: <code>
    * "quality_optimized"</code> use a translation model that maximizes translation quality, at the
    * cost of response time. This option may be unavailable for some language pairs and the API would
@@ -223,6 +233,11 @@ public class TextTranslationOptions extends BaseRequestOptions {
   /** Gets the current tag handling setting. */
   public String getTagHandling() {
     return tagHandling;
+  }
+
+  /** Gets the current tag handling version. */
+  public String getTagHandlingVersion() {
+    return tagHandlingVersion;
   }
 
   /** Gets the current outline detection setting. */

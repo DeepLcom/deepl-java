@@ -300,6 +300,38 @@ public class TranslateTextTest extends TestBase {
   }
 
   @Test
+  void testTagHandlingVersionV1() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String text = "<p>Hello world</p>";
+
+    TextResult result =
+        translator.translateText(
+            text,
+            null,
+            "de",
+            new TextTranslationOptions().setTagHandling("html").setTagHandlingVersion("v1"));
+    Assertions.assertNotNull(result);
+    Assertions.assertNotNull(result.getText());
+    Assertions.assertFalse(result.getText().isEmpty());
+  }
+
+  @Test
+  void testTagHandlingVersionV2() throws DeepLException, InterruptedException {
+    Translator translator = createTranslator();
+    String text = "<p>Hello world</p>";
+
+    TextResult result =
+        translator.translateText(
+            text,
+            null,
+            "de",
+            new TextTranslationOptions().setTagHandling("html").setTagHandlingVersion("v2"));
+    Assertions.assertNotNull(result);
+    Assertions.assertNotNull(result.getText());
+    Assertions.assertFalse(result.getText().isEmpty());
+  }
+
+  @Test
   void testEmptyText() {
     Translator translator = createTranslator();
     Assertions.assertThrows(

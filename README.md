@@ -187,6 +187,7 @@ a `TextTranslationOptions`, with the following setters:
     cost of translation quality.
 - `setTagHandling()`: type of tags to parse before translation, options are
   `"html"` and `"xml"`.
+- `setTagHandlingVersion()`: specifies which version of the tag handling algorithm to use. Options are `"v1"` and `"v2"`.
 
 The following options are only used if `setTagHandling()` is set to `'xml'`:
 

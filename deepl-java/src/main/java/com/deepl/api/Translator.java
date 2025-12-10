@@ -833,6 +833,9 @@ public class Translator {
       if (options.getTagHandling() != null) {
         params.add(new KeyValuePair<>("tag_handling", options.getTagHandling()));
       }
+      if (options.getTagHandlingVersion() != null) {
+        params.add(new KeyValuePair<>("tag_handling_version", options.getTagHandlingVersion()));
+      }
       if (!options.isOutlineDetection()) {
         params.add(new KeyValuePair<>("outline_detection", "0"));
       }
