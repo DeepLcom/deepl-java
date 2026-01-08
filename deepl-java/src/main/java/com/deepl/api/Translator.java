@@ -1063,7 +1063,7 @@ public class Translator {
         if (usingGlossary) {
           throw new GlossaryNotFoundException("Glossary not found" + messageSuffix);
         } else {
-          throw new NotFoundException("Not found, check serverUrl" + messageSuffix);
+          throw new NotFoundException("Not found" + messageSuffix);
         }
       case 429:
         throw new TooManyRequestsException(
