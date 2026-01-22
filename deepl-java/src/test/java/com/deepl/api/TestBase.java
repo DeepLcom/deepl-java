@@ -91,41 +91,6 @@ public class TestBase {
     tempDir = createTempDir();
   }
 
-  // TODO: Delete `createTranslator` methods, replace with `createDeepLClient`
-  protected Translator createTranslator() {
-    SessionOptions sessionOptions = new SessionOptions();
-    return createTranslator(sessionOptions);
-  }
-
-  protected Translator createTranslator(SessionOptions sessionOptions) {
-    TranslatorOptions translatorOptions = new TranslatorOptions();
-    return createTranslator(sessionOptions, translatorOptions);
-  }
-
-  protected Translator createTranslator(
-      SessionOptions sessionOptions, TranslatorOptions translatorOptions) {
-    Map<String, String> headers = sessionOptions.createSessionHeaders();
-
-    if (translatorOptions.getServerUrl() == null) {
-      translatorOptions.setServerUrl(serverUrl);
-    }
-
-    if (translatorOptions.getHeaders() != null) {
-      headers.putAll(translatorOptions.getHeaders());
-    }
-    translatorOptions.setHeaders(headers);
-
-    String authKey = sessionOptions.randomAuthKey ? UUID.randomUUID().toString() : TestBase.authKey;
-
-    try {
-      return new Translator(authKey, translatorOptions);
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-      System.exit(1);
-      return null;
-    }
-  }
-
   protected DeepLClient createDeepLClient() {
     SessionOptions sessionOptions = new SessionOptions();
     return createDeepLClient(sessionOptions);

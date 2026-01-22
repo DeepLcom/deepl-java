@@ -13,8 +13,8 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testSingleText() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
-    TextResult result = translator.translateText(exampleText.get("en"), null, LanguageCode.German);
+    DeepLClient client = createDeepLClient();
+    TextResult result = client.translateText(exampleText.get("en"), null, LanguageCode.German);
     Assertions.assertEquals(exampleText.get("de"), result.getText());
     Assertions.assertEquals("en", result.getDetectedSourceLanguage());
     Assertions.assertEquals(exampleText.get("en").length(), result.getBilledCharacters());
@@ -22,11 +22,11 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testTextArray() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     List<String> texts = new ArrayList<>();
     texts.add(exampleText.get("fr"));
     texts.add(exampleText.get("en"));
-    List<TextResult> result = translator.translateText(texts, null, LanguageCode.German);
+    List<TextResult> result = client.translateText(texts, null, LanguageCode.German);
     Assertions.assertEquals(exampleText.get("de"), result.get(0).getText());
     Assertions.assertEquals(exampleText.get("de"), result.get(1).getText());
   }
@@ -39,12 +39,12 @@ public class TranslateTextTest extends TestBase {
           Assertions.assertEquals("en", result.getDetectedSourceLanguage());
         };
 
-    Translator translator = createTranslator();
-    checkResult.accept(translator.translateText(exampleText.get("en"), null, "DE"));
-    checkResult.accept(translator.translateText(exampleText.get("en"), "En", "DE"));
-    checkResult.accept(translator.translateText(exampleText.get("en"), "en", "DE"));
+    DeepLClient client = createDeepLClient();
+    checkResult.accept(client.translateText(exampleText.get("en"), null, "DE"));
+    checkResult.accept(client.translateText(exampleText.get("en"), "En", "DE"));
+    checkResult.accept(client.translateText(exampleText.get("en"), "en", "DE"));
 
-    List<Language> sourceLanguages = translator.getSourceLanguages();
+    List<Language> sourceLanguages = client.getSourceLanguages();
     Language sourceLanguageEn =
         sourceLanguages.stream()
             .filter((language -> Objects.equals(language.getCode(), "en")))
@@ -58,7 +58,7 @@ public class TranslateTextTest extends TestBase {
     Assertions.assertNotNull(sourceLanguageEn);
     Assertions.assertNotNull(sourceLanguageDe);
     checkResult.accept(
-        translator.translateText(exampleText.get("en"), sourceLanguageEn, sourceLanguageDe));
+        client.translateText(exampleText.get("en"), sourceLanguageEn, sourceLanguageDe));
   }
 
   @Test
@@ -69,42 +69,42 @@ public class TranslateTextTest extends TestBase {
           Assertions.assertEquals("en", result.getDetectedSourceLanguage());
         };
 
-    Translator translator = createTranslator();
-    checkResult.accept(translator.translateText(exampleText.get("en"), null, "De"));
-    checkResult.accept(translator.translateText(exampleText.get("en"), null, "de"));
-    checkResult.accept(translator.translateText(exampleText.get("en"), null, "DE"));
+    DeepLClient client = createDeepLClient();
+    checkResult.accept(client.translateText(exampleText.get("en"), null, "De"));
+    checkResult.accept(client.translateText(exampleText.get("en"), null, "de"));
+    checkResult.accept(client.translateText(exampleText.get("en"), null, "DE"));
 
-    List<Language> targetLanguages = translator.getTargetLanguages();
+    List<Language> targetLanguages = client.getTargetLanguages();
     Language targetLanguageDe =
         targetLanguages.stream()
             .filter((language -> Objects.equals(language.getCode(), "de")))
             .findFirst()
             .orElse(null);
     Assertions.assertNotNull(targetLanguageDe);
-    checkResult.accept(translator.translateText(exampleText.get("en"), null, targetLanguageDe));
+    checkResult.accept(client.translateText(exampleText.get("en"), null, targetLanguageDe));
 
     // Check that en and pt as target languages throw an exception
     Assertions.assertThrows(
         IllegalArgumentException.class,
         () -> {
-          translator.translateText(exampleText.get("de"), null, "en");
+          client.translateText(exampleText.get("de"), null, "en");
         });
     Assertions.assertThrows(
         IllegalArgumentException.class,
         () -> {
-          translator.translateText(exampleText.get("de"), null, "pt");
+          client.translateText(exampleText.get("de"), null, "pt");
         });
   }
 
   @Test
   void testInvalidLanguage() {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     DeepLException thrown;
     thrown =
         Assertions.assertThrows(
             DeepLException.class,
             () -> {
-              translator.translateText(exampleText.get("en"), null, "XX");
+              client.translateText(exampleText.get("en"), null, "XX");
             });
     Assertions.assertTrue(thrown.getMessage().contains("target_lang"));
 
@@ -112,7 +112,7 @@ public class TranslateTextTest extends TestBase {
         Assertions.assertThrows(
             DeepLException.class,
             () -> {
-              translator.translateText(exampleText.get("en"), "XX", "de");
+              client.translateText(exampleText.get("en"), "XX", "de");
             });
     Assertions.assertTrue(thrown.getMessage().contains("source_lang"));
   }
@@ -120,13 +120,13 @@ public class TranslateTextTest extends TestBase {
   @Test
   void testTranslateWithRetries() throws DeepLException, InterruptedException {
     Assumptions.assumeTrue(isMockServer);
-    Translator translator = createTranslator(new SessionOptions().setRespondWith429(2));
+    DeepLClient client = createDeepLClient(new SessionOptions().setRespondWith429(2));
 
     long timeBefore = new Date().getTime();
     List<String> texts = new ArrayList<>();
     texts.add(exampleText.get("en"));
     texts.add(exampleText.get("ja"));
-    List<TextResult> result = translator.translateText(texts, null, "de");
+    List<TextResult> result = client.translateText(texts, null, "de");
     long timeAfter = new Date().getTime();
 
     Assertions.assertEquals(2, result.size());
@@ -139,18 +139,18 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testFormality() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     TextResult result;
 
     result =
-        translator.translateText(
+        client.translateText(
             "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.Less));
     if (!isMockServer) {
       Assertions.assertTrue(result.getText().contains("dir"));
     }
 
     result =
-        translator.translateText(
+        client.translateText(
             "How are you?",
             null,
             "de",
@@ -160,14 +160,14 @@ public class TranslateTextTest extends TestBase {
     }
 
     result =
-        translator.translateText(
+        client.translateText(
             "How are you?", null, "de", new TextTranslationOptions().setFormality(Formality.More));
     if (!isMockServer) {
       Assertions.assertTrue(result.getText().contains("Ihnen"));
     }
 
     result =
-        translator.translateText(
+        client.translateText(
             "How are you?",
             null,
             "de",
@@ -177,7 +177,7 @@ public class TranslateTextTest extends TestBase {
     }
 
     result =
-        translator.translateText(
+        client.translateText(
             "How are you?",
             null,
             "de",
@@ -192,13 +192,13 @@ public class TranslateTextTest extends TestBase {
     // In German, "scharf" can mean:
     //  - spicy/hot when referring to food, or
     //  - sharp when referring to other objects such as a knife (Messer).
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String text = "Das ist scharf!";
 
-    translator.translateText(text, null, "de");
+    client.translateText(text, null, "de");
     // Result: "That is hot!"
 
-    translator.translateText(
+    client.translateText(
         text, null, "de", new TextTranslationOptions().setContext("Das ist ein Messer."));
     // Result: "That is sharp!"
   }
@@ -207,21 +207,21 @@ public class TranslateTextTest extends TestBase {
   void testSplitSentences() throws DeepLException, InterruptedException {
     Assumptions.assumeTrue(isMockServer);
 
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String text =
         "If the implementation is hard to explain, it's a bad idea.\nIf the implementation is easy to explain, it may be a good idea.";
 
-    translator.translateText(
+    client.translateText(
         text,
         null,
         "de",
         new TextTranslationOptions().setSentenceSplittingMode(SentenceSplittingMode.Off));
-    translator.translateText(
+    client.translateText(
         text,
         null,
         "de",
         new TextTranslationOptions().setSentenceSplittingMode(SentenceSplittingMode.All));
-    translator.translateText(
+    client.translateText(
         text,
         null,
         "de",
@@ -232,13 +232,13 @@ public class TranslateTextTest extends TestBase {
   void testPreserveFormatting() throws DeepLException, InterruptedException {
     Assumptions.assumeTrue(isMockServer);
 
-    Translator translator = createTranslator();
-    translator.translateText(
+    DeepLClient client = createDeepLClient();
+    client.translateText(
         exampleText.get("en"),
         null,
         "de",
         new TextTranslationOptions().setPreserveFormatting(true));
-    translator.translateText(
+    client.translateText(
         exampleText.get("en"),
         null,
         "de",
@@ -247,7 +247,7 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testTagHandlingXML() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String text =
         "<document><meta><title>A document's title</title></meta>"
             + "<content><par>"
@@ -260,7 +260,7 @@ public class TranslateTextTest extends TestBase {
             + "</content>"
             + "</document>";
     TextResult result =
-        translator.translateText(
+        client.translateText(
             text,
             null,
             "de",
@@ -279,7 +279,7 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testTagHandlingHTML() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     String text =
         "<!DOCTYPE html>"
             + "<html>"
@@ -290,8 +290,7 @@ public class TranslateTextTest extends TestBase {
             + "</html>";
 
     TextResult result =
-        translator.translateText(
-            text, null, "de", new TextTranslationOptions().setTagHandling("html"));
+        client.translateText(text, null, "de", new TextTranslationOptions().setTagHandling("html"));
     if (!isMockServer) {
       Assertions.assertTrue(result.getText().contains("<h1>Meine erste Überschrift</h1>"));
       Assertions.assertTrue(
@@ -333,32 +332,32 @@ public class TranslateTextTest extends TestBase {
 
   @Test
   void testEmptyText() {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     Assertions.assertThrows(
         IllegalArgumentException.class,
         () -> {
-          translator.translateText("", null, "de");
+          client.translateText("", null, "de");
         });
   }
 
   @Test
   void testMixedCaseLanguages() throws DeepLException, InterruptedException {
-    Translator translator = createTranslator();
+    DeepLClient client = createDeepLClient();
     TextResult result;
 
-    result = translator.translateText(exampleText.get("de"), null, "en-us");
+    result = client.translateText(exampleText.get("de"), null, "en-us");
     Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
-    result = translator.translateText(exampleText.get("de"), null, "EN-us");
+    result = client.translateText(exampleText.get("de"), null, "EN-us");
     Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
-    result = translator.translateText(exampleText.get("de"), "de", "EN-US");
+    result = client.translateText(exampleText.get("de"), "de", "EN-US");
     Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
 
-    result = translator.translateText(exampleText.get("de"), "dE", "EN-US");
+    result = client.translateText(exampleText.get("de"), "dE", "EN-US");
     Assertions.assertEquals(exampleText.get("en-US"), result.getText().toLowerCase(Locale.ENGLISH));
     Assertions.assertEquals("de", result.getDetectedSourceLanguage());
   }
