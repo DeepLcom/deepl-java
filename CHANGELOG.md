@@ -5,12 +5,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Added JSON request body support to `HttpContent` and `HttpClientWrapper`, enabling
+  JSON-encoded API calls via `sendJsonRequestWithBackoff()` and `sendJsonPatchRequestWithBackoff()`.
+- Added support for style rules CRUD endpoints in the `DeepLClient` class:
+  `createStyleRule()`, `getStyleRule()`, `updateStyleRuleName()`,
+  `updateStyleRuleConfiguredRules()`, and `deleteStyleRule()`.
+- Added support for style rule custom instruction CRUD endpoints in the
+  `DeepLClient` class: `createStyleRuleCustomInstruction()`,
+  `getStyleRuleCustomInstruction()`, `updateStyleRuleCustomInstruction()`,
+  and `deleteStyleRuleCustomInstruction()`.
+  Please refer to the README for usage instructions.
+
 ### Changed
 - Updated formality tests to accept either formal or informal output when using default formality,
   since the default formality is automatic.
 - Updated `testModelType()` to just check if the `model_type_used` is non-null if the `model_type` is specified in the request
 - Updated `testMixedDirectionText()` to add a missing `</p>` tag
 - Improved `NotFoundException` error message by removing the misleading "check server_url" suggestion.
+
+### Fixed
+- Fixed PATCH requests (`sendPatchRequestWithBackoff`) not retrying on 429/5xx errors despite
+  the method name promising backoff behavior. PATCH requests now use the same retry logic as all
+  other HTTP methods.
 
 ## [1.14.0] - 2025-12-10
 ### Added
