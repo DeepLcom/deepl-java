@@ -577,9 +577,15 @@ public class DeepLClient extends Translator {
     ArrayList<KeyValuePair<String, String>> bodyParams = new ArrayList<>();
     bodyParams.add(new KeyValuePair<>("name", name));
     String relativeUrl = String.format("/v3/glossaries/%s", glossaryId);
-    HttpResponse response = httpClientWrapper.sendPatchRequestWithBackoff(relativeUrl, bodyParams);
-    checkResponse(response, false, true);
-    return jsonParser.parseMultilingualGlossaryInfo(response.getBody());
+    try {
+      HttpResponse response =
+          httpClientWrapper.sendPatchRequestWithBackoff(relativeUrl, bodyParams);
+      checkResponse(response, false, true);
+      return jsonParser.parseMultilingualGlossaryInfo(response.getBody());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new DeepLException("Request was interrupted", e);
+    }
   }
 
   /**

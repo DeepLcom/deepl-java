@@ -483,6 +483,27 @@ public class MultilingualGlossaryTest extends TestBase {
   }
 
   @Test
+  void testGlossaryUpdateNameWithSpecialCharsIsProperlyEncoded() throws Exception {
+    DeepLClient deepLClient = createDeepLClient();
+    try (MultilingualGlossaryCleanupUtility cleanup =
+        new MultilingualGlossaryCleanupUtility(deepLClient)) {
+      GlossaryEntries entries = new GlossaryEntries();
+      entries.put("key1", "value1");
+      List<MultilingualGlossaryDictionaryEntries> glossaryDicts =
+          Arrays.asList(new MultilingualGlossaryDictionaryEntries(sourceLang, targetLang, entries));
+      MultilingualGlossaryInfo glossary =
+          deepLClient.createMultilingualGlossary(cleanup.getGlossaryName(), glossaryDicts);
+
+      String nameWithSpecialChars = "Name with special chars: é &foo=bar \"quoted\"";
+      MultilingualGlossaryInfo updatedGlossary =
+          deepLClient.updateMultilingualGlossaryName(
+              glossary.getGlossaryId(), nameWithSpecialChars);
+
+      Assertions.assertEquals(nameWithSpecialChars, updatedGlossary.getName());
+    }
+  }
+
+  @Test
   void testGlossaryTranslateTextSentence() throws Exception {
     DeepLClient deepLClient = createDeepLClient();
     try (MultilingualGlossaryCleanupUtility cleanup =

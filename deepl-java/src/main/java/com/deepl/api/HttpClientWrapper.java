@@ -9,10 +9,12 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
+import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.*;
@@ -83,15 +85,61 @@ class HttpClientWrapper {
     return sendRequestWithBackoff(PUT, relativeUrl, content).toStringResponse();
   }
 
+  public HttpResponse sendJsonRequestWithBackoff(String relativeUrl, String jsonBody)
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildJsonContent(jsonBody);
+    return sendRequestWithBackoff(POST, relativeUrl, content).toStringResponse();
+  }
+
+  public HttpResponse sendJsonRequestWithBackoff(String method, String relativeUrl, String jsonBody)
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildJsonContent(jsonBody);
+    return sendRequestWithBackoff(method, relativeUrl, content).toStringResponse();
+  }
+
+  public HttpResponse sendJsonPatchRequestWithBackoff(String relativeUrl, String jsonBody)
+      throws InterruptedException, DeepLException {
+    return sendPatchRequestWithBackoff(relativeUrl, HttpContent.buildJsonContent(jsonBody));
+  }
+
   public HttpResponse sendPatchRequestWithBackoff(
       String relativeUrl, @Nullable Iterable<KeyValuePair<String, String>> params)
-      throws DeepLException {
-    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-      HttpContent content = HttpContent.buildFormURLEncodedContent(params);
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildFormURLEncodedContent(params);
+    return sendPatchRequestWithBackoff(relativeUrl, content);
+  }
+
+  private HttpResponse sendPatchRequestWithBackoff(String relativeUrl, HttpContent content)
+      throws InterruptedException, DeepLException {
+    BackoffTimer backoffTimer = new BackoffTimer(this.minTimeout);
+    while (true) {
+      try {
+        HttpResponse response = sendPatchRequest(relativeUrl, content, backoffTimer);
+        if (backoffTimer.getNumRetries() >= this.maxRetries) {
+          return response;
+        } else if (response.getCode() != 429 && response.getCode() < 500) {
+          return response;
+        }
+      } catch (ConnectionException exception) {
+        if (!exception.getShouldRetry() || backoffTimer.getNumRetries() >= this.maxRetries) {
+          throw exception;
+        }
+      }
+      backoffTimer.sleepUntilRetry();
+    }
+  }
+
+  private HttpResponse sendPatchRequest(
+      String relativeUrl, HttpContent content, BackoffTimer backoffTimer) throws DeepLException {
+    HttpClientBuilder builder = HttpClients.custom();
+    if (proxy != null) {
+      InetSocketAddress addr = (InetSocketAddress) proxy.address();
+      builder.setProxy(new HttpHost(addr.getHostName(), addr.getPort()));
+    }
+    try (CloseableHttpClient httpClient = builder.build()) {
       HttpPatch request = new HttpPatch(serverUrl + relativeUrl);
 
       // Set timeouts
-      BackoffTimer backoffTimer = new BackoffTimer(this.minTimeout);
       RequestConfig requestConfig =
           RequestConfig.custom()
               .setConnectTimeout((int) backoffTimer.getTimeoutMillis())

@@ -52,6 +52,13 @@ public class HttpContent {
     }
   }
 
+  public static HttpContent buildJsonContent(String jsonBody) {
+    if (jsonBody == null) {
+      throw new IllegalArgumentException("jsonBody must not be null");
+    }
+    return new HttpContent("application/json", jsonBody.getBytes(StandardCharsets.UTF_8));
+  }
+
   public static HttpContent buildMultipartFormDataContent(
       Iterable<KeyValuePair<String, Object>> params) throws Exception {
     String boundary = UUID.randomUUID().toString();
