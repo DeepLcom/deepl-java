@@ -149,6 +149,7 @@ public class TranslateTextTest extends TestBase {
       Assertions.assertTrue(result.getText().contains("dir"));
     }
 
+    // Default formality is automatic, so the output may be either formal or informal
     result =
         translator.translateText(
             "How are you?",
@@ -156,7 +157,7 @@ public class TranslateTextTest extends TestBase {
             "de",
             new TextTranslationOptions().setFormality(Formality.Default));
     if (!isMockServer) {
-      Assertions.assertTrue(result.getText().contains("Ihnen"));
+      Assertions.assertTrue(result.getText().contains("Ihnen") || result.getText().contains("dir"));
     }
 
     result =
