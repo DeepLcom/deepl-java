@@ -10,7 +10,9 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 public class DeepLClient extends Translator {
@@ -137,6 +139,7 @@ public class DeepLClient extends Translator {
       throws DeepLException, IllegalArgumentException, InterruptedException {
     return createGlossaryFromCsvInternal(name, sourceLanguageCode, targetLanguageCode, csvFile);
   }
+
   /**
    * Creates a glossary in your DeepL account with the specified details and returns a {@link
    * MultilingualGlossaryInfo} object with details about the newly created glossary. The glossary
@@ -798,6 +801,241 @@ public class DeepLClient extends Translator {
    */
   public List<StyleRuleInfo> getAllStyleRules() throws DeepLException, InterruptedException {
     return getAllStyleRules(null, null, null);
+  }
+
+  /**
+   * Creates a new style rule with the specified details and returns a {@link StyleRuleInfo} object
+   * with details about the newly created style rule.
+   *
+   * @param name User-defined name for the style rule.
+   * @param language Language code for the style rule (e.g. "en", "de").
+   * @param configuredRules Optional configured rules for the style rule.
+   * @param customInstructions Optional list of custom instructions for the style rule.
+   * @return {@link StyleRuleInfo} object with details about the newly created style rule.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public StyleRuleInfo createStyleRule(
+      String name,
+      String language,
+      @Nullable ConfiguredRules configuredRules,
+      @Nullable List<CustomInstruction> customInstructions)
+      throws DeepLException, InterruptedException {
+    validateParameter("name", name);
+    validateParameter("language", language);
+    Map<String, Object> requestData = new HashMap<>();
+    requestData.put("name", name);
+    requestData.put("language", language);
+    if (configuredRules != null) {
+      requestData.put("configured_rules", configuredRules);
+    }
+    if (customInstructions != null) {
+      requestData.put("custom_instructions", customInstructions);
+    }
+    String jsonBody = jsonParser.getGson().toJson(requestData);
+    HttpResponse response =
+        httpClientWrapper.sendJsonRequestWithBackoff("/v3/style_rules", jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseStyleRuleInfo(response.getBody());
+  }
+
+  /**
+   * Retrieves information about the style rule with the specified ID and returns a {@link
+   * StyleRuleInfo} object containing details.
+   *
+   * @param styleId ID of the style rule to retrieve.
+   * @return {@link StyleRuleInfo} object with details about the specified style rule.
+   * @throws NotFoundException If no style rule with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public StyleRuleInfo getStyleRule(String styleId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    String relativeUrl = String.format("/v3/style_rules/%s", styleId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseStyleRuleInfo(response.getBody());
+  }
+
+  /**
+   * Updates the name of the style rule with the specified ID and returns the updated {@link
+   * StyleRuleInfo} object.
+   *
+   * @param styleId ID of the style rule to update.
+   * @param name New name for the style rule.
+   * @return {@link StyleRuleInfo} object with updated details about the style rule.
+   * @throws NotFoundException If no style rule with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public StyleRuleInfo updateStyleRuleName(String styleId, String name)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    validateParameter("name", name);
+    String relativeUrl = String.format("/v3/style_rules/%s", styleId);
+    Map<String, Object> requestData = new HashMap<>();
+    requestData.put("name", name);
+    String jsonBody = jsonParser.getGson().toJson(requestData);
+    HttpResponse response =
+        httpClientWrapper.sendJsonPatchRequestWithBackoff(relativeUrl, jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseStyleRuleInfo(response.getBody());
+  }
+
+  /**
+   * Deletes the style rule with the specified ID.
+   *
+   * @param styleId ID of the style rule to delete.
+   * @throws NotFoundException If no style rule with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public void deleteStyleRule(String styleId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    String relativeUrl = String.format("/v3/style_rules/%s", styleId);
+    HttpResponse response = httpClientWrapper.sendDeleteRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+  }
+
+  /**
+   * Replaces the configured rules of the style rule with the specified ID and returns the updated
+   * {@link StyleRuleInfo} object.
+   *
+   * @param styleId ID of the style rule to update.
+   * @param configuredRules The new configured rules to set for the style rule.
+   * @return {@link StyleRuleInfo} object with updated details about the style rule.
+   * @throws NotFoundException If no style rule with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public StyleRuleInfo updateStyleRuleConfiguredRules(
+      String styleId, ConfiguredRules configuredRules)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    if (configuredRules == null) {
+      throw new IllegalArgumentException("configuredRules must not be null");
+    }
+    String relativeUrl = String.format("/v3/style_rules/%s/configured_rules", styleId);
+    String jsonBody = jsonParser.getGson().toJson(configuredRules);
+    HttpResponse response =
+        httpClientWrapper.sendJsonRequestWithBackoff("PUT", relativeUrl, jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseStyleRuleInfo(response.getBody());
+  }
+
+  /**
+   * Creates a new custom instruction for the style rule with the specified ID and returns the
+   * created {@link CustomInstruction} object.
+   *
+   * @param styleId ID of the style rule to add the custom instruction to.
+   * @param label Label for the custom instruction.
+   * @param prompt Prompt text for the custom instruction.
+   * @param sourceLanguage Optional source language code for the custom instruction.
+   * @return {@link CustomInstruction} object with details about the newly created custom
+   *     instruction.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public CustomInstruction createStyleRuleCustomInstruction(
+      String styleId, String label, String prompt, @Nullable String sourceLanguage)
+      throws DeepLException, InterruptedException {
+    validateParameter("styleId", styleId);
+    validateParameter("label", label);
+    validateParameter("prompt", prompt);
+    String relativeUrl = String.format("/v3/style_rules/%s/custom_instructions", styleId);
+    Map<String, Object> requestData = new HashMap<>();
+    requestData.put("label", label);
+    requestData.put("prompt", prompt);
+    if (sourceLanguage != null) {
+      requestData.put("source_language", sourceLanguage);
+    }
+    String jsonBody = jsonParser.getGson().toJson(requestData);
+    HttpResponse response = httpClientWrapper.sendJsonRequestWithBackoff(relativeUrl, jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseCustomInstruction(response.getBody());
+  }
+
+  /**
+   * Retrieves information about the custom instruction with the specified ID within the style rule
+   * with the specified ID and returns a {@link CustomInstruction} object containing details.
+   *
+   * @param styleId ID of the style rule containing the custom instruction.
+   * @param instructionId ID of the custom instruction to retrieve.
+   * @return {@link CustomInstruction} object with details about the specified custom instruction.
+   * @throws NotFoundException If no style rule or custom instruction with the given IDs is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public CustomInstruction getStyleRuleCustomInstruction(String styleId, String instructionId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    validateParameter("instructionId", instructionId);
+    String relativeUrl =
+        String.format("/v3/style_rules/%s/custom_instructions/%s", styleId, instructionId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseCustomInstruction(response.getBody());
+  }
+
+  /**
+   * Updates the custom instruction with the specified ID within the style rule with the specified
+   * ID and returns the updated {@link CustomInstruction} object.
+   *
+   * @param styleId ID of the style rule containing the custom instruction.
+   * @param instructionId ID of the custom instruction to update.
+   * @param label New label for the custom instruction.
+   * @param prompt New prompt text for the custom instruction.
+   * @param sourceLanguage Optional new source language code for the custom instruction.
+   * @return {@link CustomInstruction} object with updated details about the custom instruction.
+   * @throws NotFoundException If no style rule or custom instruction with the given IDs is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public CustomInstruction updateStyleRuleCustomInstruction(
+      String styleId,
+      String instructionId,
+      String label,
+      String prompt,
+      @Nullable String sourceLanguage)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    validateParameter("instructionId", instructionId);
+    validateParameter("label", label);
+    validateParameter("prompt", prompt);
+    String relativeUrl =
+        String.format("/v3/style_rules/%s/custom_instructions/%s", styleId, instructionId);
+    Map<String, Object> requestData = new HashMap<>();
+    requestData.put("label", label);
+    requestData.put("prompt", prompt);
+    if (sourceLanguage != null) {
+      requestData.put("source_language", sourceLanguage);
+    }
+    String jsonBody = jsonParser.getGson().toJson(requestData);
+    HttpResponse response =
+        httpClientWrapper.sendJsonRequestWithBackoff("PUT", relativeUrl, jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseCustomInstruction(response.getBody());
+  }
+
+  /**
+   * Deletes the custom instruction with the specified ID from the style rule with the specified ID.
+   *
+   * @param styleId ID of the style rule containing the custom instruction.
+   * @param instructionId ID of the custom instruction to delete.
+   * @throws NotFoundException If no style rule or custom instruction with the given IDs is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public void deleteStyleRuleCustomInstruction(String styleId, String instructionId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("styleId", styleId);
+    validateParameter("instructionId", instructionId);
+    String relativeUrl =
+        String.format("/v3/style_rules/%s/custom_instructions/%s", styleId, instructionId);
+    HttpResponse response = httpClientWrapper.sendDeleteRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
   }
 
   /** Creates a glossary with given details. */

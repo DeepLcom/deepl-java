@@ -657,42 +657,128 @@ Style rules allow you to customize your translations using a managed, shared lis
 of rules for style, formatting, and more. Multiple style rules can be stored with
 your account, each with a user-specified name and a uniquely-assigned ID.
 
-#### Creating and managing style rules
+#### Creating a style rule
 
-Currently style rules must be created and managed in the DeepL UI via
-https://www.deepl.com/en/custom-rules. Full CRUD functionality via the APIs will
-come shortly.
-
-#### Listing all style rules
-
-`getAllStyleRules()` returns a list of `StyleRuleInfo` objects
-corresponding to all of your stored style rules. The method accepts optional
-parameters: `page` (page number for pagination, 0-indexed), `pageSize` (number
-of items per page), and `detailed` (whether to include detailed configuration
-rules in the `configuredRules` property).
+Use `createStyleRule()` to create a new style rule. You must specify a name and
+language code. You may optionally provide configured rules and custom
+instructions:
 
 ```java
 class Example {  // Continuing class Example from above
-    public void styleRulesExample() throws Exception {
+    public void createStyleRuleExample() throws Exception {
+        // Create a simple style rule
+        StyleRuleInfo rule = client.createStyleRule("My Style", "en", null, null);
+        System.out.println("Created: " + rule.getStyleId());
+
+        // Create with custom instructions
+        List<CustomInstruction> instructions = new ArrayList<>();
+        instructions.add(new CustomInstruction("Formal tone", "Use formal language", null));
+        StyleRuleInfo ruleWithInstructions = client.createStyleRule(
+            "Formal Style", "en", null, instructions);
+    }
+}
+```
+
+#### Retrieving and listing style rules
+
+`getStyleRule()` retrieves a single style rule by its ID. `getAllStyleRules()`
+returns a list of `StyleRuleInfo` objects corresponding to all of your stored
+style rules. The method accepts optional parameters: `page` (page number for
+pagination, 0-indexed), `pageSize` (number of items per page), and `detailed`.
+When `true`, the response includes `configuredRules` and `customInstructions`
+for each style rule. When `false` (default), these fields are omitted for faster
+responses.
+
+```java
+class Example {  // Continuing class Example from above
+    public void listStyleRulesExample() throws Exception {
+        // Get a single style rule by ID
+        StyleRuleInfo rule = client.getStyleRule("dca2e053-8ae5-45e6-a0d2-881156e7f4e4");
+        System.out.println(rule.getName());
+
         // Get all style rules
         List<StyleRuleInfo> styleRules = client.getAllStyleRules();
-        for (StyleRuleInfo rule : styleRules) {
-            System.out.println(String.format("%s (%s)", rule.getName(), rule.getStyleId()));
+        for (StyleRuleInfo r : styleRules) {
+            System.out.println(String.format("%s (%s)", r.getName(), r.getStyleId()));
         }
 
         // Get style rules with detailed configuration
         List<StyleRuleInfo> styleRulesDetailed = client.getAllStyleRules(null, null, true);
-        for (StyleRuleInfo rule : styleRulesDetailed) {
-            if (rule.getConfiguredRules() != null && rule.getConfiguredRules().getNumbers() != null) {
+        for (StyleRuleInfo r : styleRulesDetailed) {
+            if (r.getConfiguredRules() != null && r.getConfiguredRules().getNumbers() != null) {
                 System.out.println(String.format("Number formatting rules: %s",
-                    String.join(", ", rule.getConfiguredRules().getNumbers().keySet())));
+                    String.join(", ", r.getConfiguredRules().getNumbers().keySet())));
             }
         }
     }
 }
 ```
 
-#### Using a stored style rule
+#### Updating a style rule
+
+Use `updateStyleRuleName()` to rename a style rule, and
+`updateStyleRuleConfiguredRules()` to replace its configured rules:
+
+```java
+class Example {  // Continuing class Example from above
+    public void updateStyleRuleExample() throws Exception {
+        String styleId = "dca2e053-8ae5-45e6-a0d2-881156e7f4e4";
+
+        // Update the name
+        StyleRuleInfo updated = client.updateStyleRuleName(styleId, "New Name");
+        System.out.println("Updated name: " + updated.getName());
+
+        // Update configured rules
+        ConfiguredRules configuredRules = new ConfiguredRules();
+        StyleRuleInfo updatedRules = client.updateStyleRuleConfiguredRules(
+            styleId, configuredRules);
+    }
+}
+```
+
+#### Managing custom instructions
+
+Custom instructions can be created, retrieved, updated, and deleted individually
+within a style rule:
+
+```java
+class Example {  // Continuing class Example from above
+    public void customInstructionsExample() throws Exception {
+        String styleId = "dca2e053-8ae5-45e6-a0d2-881156e7f4e4";
+
+        // Create a custom instruction
+        CustomInstruction instruction = client.createStyleRuleCustomInstruction(
+            styleId, "Formal tone", "Always use formal language", null);
+        String instructionId = instruction.getId();
+
+        // Retrieve the custom instruction
+        CustomInstruction retrieved = client.getStyleRuleCustomInstruction(
+            styleId, instructionId);
+        System.out.println(retrieved.getLabel());
+
+        // Update the custom instruction
+        CustomInstruction updated = client.updateStyleRuleCustomInstruction(
+            styleId, instructionId, "Updated label", "Updated prompt", null);
+
+        // Delete the custom instruction
+        client.deleteStyleRuleCustomInstruction(styleId, instructionId);
+    }
+}
+```
+
+#### Deleting a style rule
+
+Use `deleteStyleRule()` to permanently remove a style rule from your account:
+
+```java
+class Example {  // Continuing class Example from above
+    public void deleteStyleRuleExample() throws Exception {
+        client.deleteStyleRule("dca2e053-8ae5-45e6-a0d2-881156e7f4e4");
+    }
+}
+```
+
+#### Using a stored style rule in translations
 
 You can use a stored style rule for text translation by setting the `styleRule`
 argument to either the style rule ID or `StyleRuleInfo` object:

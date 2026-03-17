@@ -18,6 +18,10 @@ import org.jetbrains.annotations.*;
 public class Parser {
   private final Gson gson;
 
+  public Gson getGson() {
+    return gson;
+  }
+
   public Parser() {
     GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.registerTypeAdapter(TextResult.class, new TextResultDeserializer());
@@ -89,6 +93,14 @@ public class Parser {
   public List<StyleRuleInfo> parseStyleRuleInfoList(String json) {
     StyleRuleListResponse result = gson.fromJson(json, StyleRuleListResponse.class);
     return result.getStyleRules();
+  }
+
+  public StyleRuleInfo parseStyleRuleInfo(String json) {
+    return gson.fromJson(json, StyleRuleInfo.class);
+  }
+
+  public CustomInstruction parseCustomInstruction(String json) {
+    return gson.fromJson(json, CustomInstruction.class);
   }
 
   public String parseErrorMessage(String json) {

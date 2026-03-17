@@ -8,6 +8,10 @@ import org.jetbrains.annotations.*;
 
 /** Custom instruction for a style rule. */
 public class CustomInstruction {
+  @SerializedName(value = "id")
+  @Nullable
+  private final String id;
+
   @SerializedName(value = "label")
   private final String label;
 
@@ -21,14 +25,34 @@ public class CustomInstruction {
   /**
    * Initializes a new {@link CustomInstruction} containing a custom instruction for a style rule.
    *
+   * @param id Optional unique identifier for the custom instruction.
+   * @param label Label for the custom instruction.
+   * @param prompt Prompt text for the custom instruction.
+   * @param sourceLanguage Optional source language code for the custom instruction.
+   */
+  public CustomInstruction(
+      @Nullable String id, String label, String prompt, @Nullable String sourceLanguage) {
+    this.id = id;
+    this.label = label;
+    this.prompt = prompt;
+    this.sourceLanguage = sourceLanguage;
+  }
+
+  /**
+   * Initializes a new {@link CustomInstruction} containing a custom instruction for a style rule.
+   *
    * @param label Label for the custom instruction.
    * @param prompt Prompt text for the custom instruction.
    * @param sourceLanguage Optional source language code for the custom instruction.
    */
   public CustomInstruction(String label, String prompt, @Nullable String sourceLanguage) {
-    this.label = label;
-    this.prompt = prompt;
-    this.sourceLanguage = sourceLanguage;
+    this(null, label, prompt, sourceLanguage);
+  }
+
+  /** @return Optional unique identifier for the custom instruction, or {@code null} if not set. */
+  @Nullable
+  public String getId() {
+    return id;
   }
 
   /** @return Label for the custom instruction. */
