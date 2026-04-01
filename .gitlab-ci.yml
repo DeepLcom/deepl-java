@@ -234,6 +234,7 @@ publish_manual:
 
 gitlab release:
   stage: publish
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
   extends: .create_gitlab_release
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
