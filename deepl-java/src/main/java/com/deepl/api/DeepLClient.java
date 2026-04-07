@@ -804,6 +804,64 @@ public class DeepLClient extends Translator {
   }
 
   /**
+   * Retrieves a list of translation memories available for the account associated with the DeepL
+   * API auth key. The maximum number of translation memories returned is controlled by pageSize
+   * (max 25).
+   *
+   * @param page Page number to retrieve (starting from 0), or <code>null</code>.
+   * @param pageSize Number of items per page, or <code>null</code>.
+   * @return List of {@link TranslationMemoryInfo} objects.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public List<TranslationMemoryInfo> listTranslationMemories(
+      @Nullable Integer page, @Nullable Integer pageSize)
+      throws DeepLException, InterruptedException {
+    ArrayList<KeyValuePair<String, String>> queryParams = new ArrayList<>();
+    if (page != null) {
+      queryParams.add(new KeyValuePair<>("page", page.toString()));
+    }
+    if (pageSize != null) {
+      queryParams.add(new KeyValuePair<>("page_size", pageSize.toString()));
+    }
+
+    String queryString = "";
+    if (!queryParams.isEmpty()) {
+      StringBuilder sb = new StringBuilder("?");
+      for (int i = 0; i < queryParams.size(); i++) {
+        if (i > 0) {
+          sb.append("&");
+        }
+        KeyValuePair<String, String> param = queryParams.get(i);
+        try {
+          sb.append(URLEncoder.encode(param.getKey(), StandardCharsets.UTF_8.name()))
+              .append("=")
+              .append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8.name()));
+        } catch (java.io.UnsupportedEncodingException e) {
+          throw new RuntimeException("UTF-8 encoding not supported", e);
+        }
+      }
+      queryString = sb.toString();
+    }
+
+    String relativeUrl = "/v3/translation_memories" + queryString;
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseTranslationMemoryInfoList(response.getBody());
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#listTranslationMemories(Integer, Integer, Boolean)}
+   * but with default parameters (all null).
+   *
+   * @see DeepLClient#listTranslationMemories(Integer, Integer)
+   */
+  public List<TranslationMemoryInfo> listTranslationMemories()
+      throws DeepLException, InterruptedException {
+    return listTranslationMemories(null, null);
+  }
+
+  /**
    * Creates a new style rule with the specified details and returns a {@link StyleRuleInfo} object
    * with details about the newly created style rule.
    *

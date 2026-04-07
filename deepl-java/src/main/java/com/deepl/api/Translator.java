@@ -852,6 +852,19 @@ public class Translator {
       if (options.getStyleId() != null) {
         params.add(new KeyValuePair<>("style_id", options.getStyleId()));
       }
+      if (options.getTranslationMemoryId() != null) {
+        params.add(new KeyValuePair<>("translation_memory_id", options.getTranslationMemoryId()));
+      }
+      if (options.getTranslationMemoryThreshold() != null) {
+        if (options.getTranslationMemoryId() == null) {
+          throw new IllegalArgumentException(
+              "translationMemoryThreshold requires translationMemoryId");
+        }
+        params.add(
+            new KeyValuePair<>(
+                "translation_memory_threshold",
+                options.getTranslationMemoryThreshold().toString()));
+      }
       if (options.getCustomInstructions() != null) {
         for (String instruction : options.getCustomInstructions()) {
           params.add(new KeyValuePair<>("custom_instructions", instruction));

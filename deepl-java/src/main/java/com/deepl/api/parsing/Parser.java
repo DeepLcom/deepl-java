@@ -99,6 +99,15 @@ public class Parser {
     return gson.fromJson(json, StyleRuleInfo.class);
   }
 
+  public List<TranslationMemoryInfo> parseTranslationMemoryInfoList(String json) {
+    TranslationMemoryListResponse result = gson.fromJson(json, TranslationMemoryListResponse.class);
+    return result.getTranslationMemories();
+  }
+
+  public TranslationMemoryInfo parseTranslationMemoryInfo(String json) {
+    return gson.fromJson(json, TranslationMemoryInfo.class);
+  }
+
   public CustomInstruction parseCustomInstruction(String json) {
     return gson.fromJson(json, CustomInstruction.class);
   }

@@ -167,6 +167,13 @@ a `TextTranslationOptions`, with the following setters:
 - `setStyleRule()`: specifies a style rule to use with translation, as a string
   containing the ID of the style rule, or a `StyleRuleInfo` object.
     - `setStyleId()` is also available, accepting a string containing the style rule ID.
+- `setTranslationMemory()`: specifies a translation memory to use with translation,
+  as a `TranslationMemoryInfo` object. Sets the translation memory ID.
+    - `setTranslationMemoryId()` is also available, accepting a string containing
+      the translation memory ID.
+    - `setTranslationMemoryThreshold()` is also available, accepting an integer
+      from 0 to 100 to control the minimum matching percentage for translation
+      memory matches. We recommend a minimum threshold of 75%.
 - `setContext()`: specifies additional context to influence translations, that is not
   translated itself. Characters in the `context` parameter are not counted toward billing.
   See the [API documentation][api-docs-context-param] for more information and
@@ -793,6 +800,64 @@ class Example {  // Continuing class Example from above
             "en-US",
             new TextTranslationOptions().setStyleId(styleId));
         System.out.println(result.getText());
+    }
+}
+```
+
+### Translation Memories
+
+Translation memories store and reuse previously created translations, helping to
+ensure consistency and reduce effort when translating similar or repeated content.
+
+#### Uploading and managing translation memories
+
+Currently translation memories must be uploaded and managed in the DeepL UI via
+https://www.deepl.com/translation-memory. Full CRUD functionality via the APIs will
+come shortly.
+
+#### Listing translation memories
+
+Use `listTranslationMemories()` to retrieve translation memories associated
+with your account:
+
+```java
+class Example {  // Continuing class Example from above
+    public void listTranslationMemoriesExample() throws Exception {
+        List<TranslationMemoryInfo> translationMemories =
+                client.listTranslationMemories();
+        for (TranslationMemoryInfo tm : translationMemories) {
+            System.out.println(String.format("%s (%s)",
+                tm.getName(), tm.getTranslationMemoryId()));
+        }
+    }
+}
+```
+
+#### Using a translation memory in translations
+
+You can use a translation memory for text translation by setting the translation
+memory options in `TextTranslationOptions`:
+
+```java
+class Example {  // Continuing class Example from above
+    public void usingTranslationMemoryExample() throws Exception {
+        // Using the translation memory ID directly
+        TextTranslationOptions options = new TextTranslationOptions()
+                .setTranslationMemoryId("tm-123abc")
+                .setTranslationMemoryThreshold(80);
+        TextResult result = client.translateText(
+            "Hello, world!", null, "de", options);
+        System.out.println(result.getText());
+
+        // Or using a TranslationMemoryInfo object from listTranslationMemories()
+        List<TranslationMemoryInfo> memories = client.listTranslationMemories();
+        if (!memories.isEmpty()) {
+            TextTranslationOptions optionsFromInfo = new TextTranslationOptions()
+                    .setTranslationMemory(memories.get(0));
+            TextResult resultFromInfo = client.translateText(
+                "Hello, world!", null, "de", optionsFromInfo);
+            System.out.println(resultFromInfo.getText());
+        }
     }
 }
 ```

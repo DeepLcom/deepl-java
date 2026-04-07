@@ -17,6 +17,8 @@ public class TextTranslationOptions extends BaseRequestOptions {
   private Formality formality;
   private String glossaryId;
   private String styleId;
+  private String translationMemoryId;
+  private Integer translationMemoryThreshold;
   private SentenceSplittingMode sentenceSplittingMode;
   private boolean preserveFormatting = false;
   private String context;
@@ -83,6 +85,41 @@ public class TextTranslationOptions extends BaseRequestOptions {
    */
   public TextTranslationOptions setStyleRule(StyleRuleInfo styleRule) {
     return setStyleId(styleRule.getStyleId());
+  }
+
+  /**
+   * Sets the ID of a translation memory to use with the translation. By default, this value is
+   * <code>null</code> and no translation memory is used.
+   */
+  public TextTranslationOptions setTranslationMemoryId(String translationMemoryId) {
+    this.translationMemoryId = translationMemoryId;
+    return this;
+  }
+
+  /**
+   * Sets the translation memory to use with the translation. By default, this value is <code>null
+   * </code> and no translation memory is used.
+   */
+  public TextTranslationOptions setTranslationMemory(TranslationMemoryInfo translationMemory) {
+    if (translationMemory == null) {
+      throw new IllegalArgumentException("translationMemory must not be null");
+    }
+    return setTranslationMemoryId(translationMemory.getTranslationMemoryId());
+  }
+
+  /**
+   * Sets the threshold for translation memory matches. By default, this value is <code>null</code>
+   * and the API default threshold is used. Note: a translation memory ID must also be set via
+   * {@link #setTranslationMemoryId} or {@link #setTranslationMemory}, otherwise an error will be
+   * thrown at translation time.
+   */
+  public TextTranslationOptions setTranslationMemoryThreshold(Integer translationMemoryThreshold) {
+    if (translationMemoryThreshold != null
+        && (translationMemoryThreshold < 0 || translationMemoryThreshold > 100)) {
+      throw new IllegalArgumentException("translationMemoryThreshold must be between 0 and 100");
+    }
+    this.translationMemoryThreshold = translationMemoryThreshold;
+    return this;
   }
 
   /**
@@ -208,6 +245,16 @@ public class TextTranslationOptions extends BaseRequestOptions {
   /** Gets the current style rule ID. */
   public String getStyleId() {
     return styleId;
+  }
+
+  /** Gets the current translation memory ID. */
+  public String getTranslationMemoryId() {
+    return translationMemoryId;
+  }
+
+  /** Gets the current translation memory threshold. */
+  public Integer getTranslationMemoryThreshold() {
+    return translationMemoryThreshold;
   }
 
   /** Gets the current sentence splitting mode. */
