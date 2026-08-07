@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Added support for using multiple glossaries in text and document translation
+  via `setGlossaryIds()`/`setGlossaries()` (up to 5 glossaries) in
+  `TextTranslationOptions` and `DocumentTranslationOptions`.
+- Added support for style rules in document translation via
+  `setStyleRule()`/`setStyleId()` in `DocumentTranslationOptions`.
+- Added support for translation memories in document translation via
+  `setTranslationMemory()`/`setTranslationMemoryId()`/`setTranslationMemoryThreshold()`
+  in `DocumentTranslationOptions`.
+
+### Fixed
+- Fixed incorrect example texts in the test suite for several languages (Danish,
+  Indonesian, Japanese, Portuguese, and Russian) to match the mock server.
 
 ## [1.16.0] - 2026-04-09
 ### Added

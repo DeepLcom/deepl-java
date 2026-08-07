@@ -164,6 +164,11 @@ a `TextTranslationOptions`, with the following setters:
   `listGlossaries()` or `listMultilingualGlossaries()`).
     - `setGlossaryId()` is also available for backward-compatibility, accepting
       a string containing the glossary ID.
+- `setGlossaryIds()`: specifies multiple glossaries to use with translation
+  (up to 5), as a list or varargs of glossary ID strings. Glossaries are applied
+  in the order provided (first match wins). `setGlossaries()` is also available,
+  accepting `IGlossary` objects. This option requires a source language and
+  cannot be combined with `setGlossary()`/`setGlossaryId()`.
 - `setStyleRule()`: specifies a style rule to use with translation, as a string
   containing the ID of the style rule, or a `StyleRuleInfo` object.
     - `setStyleId()` is also available, accepting a string containing the style rule ID.
@@ -323,6 +328,15 @@ arguments, `translateDocument()` accepts an optional
   in [Text translation options](#text-translation-options).
 - `setGlossaryId()`: same as
   in [Text translation options](#text-translation-options).
+- `setGlossaryIds()`/`setGlossaries()`: same as
+  in [Text translation options](#text-translation-options). Specifies multiple
+  glossaries (up to 5) to use with document translation.
+- `setStyleRule()`/`setStyleId()`: same as
+  in [Text translation options](#text-translation-options). Document translation
+  now supports style rules.
+- `setTranslationMemory()`/`setTranslationMemoryId()`/`setTranslationMemoryThreshold()`:
+  same as in [Text translation options](#text-translation-options). Document
+  translation now supports translation memories.
 
 ### Glossaries
 

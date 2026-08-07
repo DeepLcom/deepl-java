@@ -3,6 +3,10 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Options to control text translation behaviour. These options may be provided to {@link
  * Translator#translateText} overloads.
@@ -16,6 +20,7 @@ package com.deepl.api;
 public class TextTranslationOptions extends BaseRequestOptions {
   private Formality formality;
   private String glossaryId;
+  private List<String> glossaryIds;
   private String styleId;
   private String translationMemoryId;
   private Integer translationMemoryThreshold;
@@ -71,6 +76,46 @@ public class TextTranslationOptions extends BaseRequestOptions {
   }
 
   /**
+   * Sets the list of glossary IDs to use with the translation, up to a maximum of 5. Glossaries are
+   * applied in the order provided (first match wins). By default, this value is <code>null</code>
+   * and no glossaries are used. This option requires a source language to be set and cannot be
+   * combined with {@link #setGlossaryId} or {@link #setGlossary}.
+   */
+  public TextTranslationOptions setGlossaryIds(List<String> glossaryIds) {
+    this.glossaryIds = glossaryIds;
+    return this;
+  }
+
+  /**
+   * Sets the list of glossary IDs to use with the translation, up to a maximum of 5. Glossaries are
+   * applied in the order provided (first match wins). By default, this value is <code>null</code>
+   * and no glossaries are used. This option requires a source language to be set and cannot be
+   * combined with {@link #setGlossaryId} or {@link #setGlossary}.
+   */
+  public TextTranslationOptions setGlossaryIds(String... glossaryIds) {
+    this.glossaryIds = Arrays.asList(glossaryIds);
+    return this;
+  }
+
+  /**
+   * Sets the list of glossaries to use with the translation, up to a maximum of 5. Glossaries are
+   * applied in the order provided (first match wins). By default, this value is <code>null</code>
+   * and no glossaries are used. This option requires a source language to be set and cannot be
+   * combined with {@link #setGlossaryId} or {@link #setGlossary}.
+   */
+  public TextTranslationOptions setGlossaries(IGlossary... glossaries) {
+    List<String> ids = new ArrayList<>();
+    for (IGlossary glossary : glossaries) {
+      if (glossary == null) {
+        throw new IllegalArgumentException("glossaries must not contain null");
+      }
+      ids.add(glossary.getGlossaryId());
+    }
+    this.glossaryIds = ids;
+    return this;
+  }
+
+  /**
    * Sets the ID of a style rule to use with the translation. By default, this value is <code>
    * null</code> and no style rule is used.
    */
@@ -84,6 +129,9 @@ public class TextTranslationOptions extends BaseRequestOptions {
    * and no style rule is used.
    */
   public TextTranslationOptions setStyleRule(StyleRuleInfo styleRule) {
+    if (styleRule == null) {
+      throw new IllegalArgumentException("styleRule must not be null");
+    }
     return setStyleId(styleRule.getStyleId());
   }
 
@@ -240,6 +288,11 @@ public class TextTranslationOptions extends BaseRequestOptions {
   /** Gets the current glossary ID. */
   public String getGlossaryId() {
     return glossaryId;
+  }
+
+  /** Gets the current list of glossary IDs. */
+  public List<String> getGlossaryIds() {
+    return glossaryIds;
   }
 
   /** Gets the current style rule ID. */

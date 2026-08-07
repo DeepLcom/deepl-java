@@ -51,7 +51,7 @@ public class TestBase {
     exampleText.put("ar", "شعاع البروتون");
     exampleText.put("bg", "протонен лъч");
     exampleText.put("cs", "protonový paprsek");
-    exampleText.put("da", "protonstråle");
+    exampleText.put("da", "Protonstråle");
     exampleText.put("de", "Protonenstrahl");
     exampleText.put("el", "δέσμη πρωτονίων");
     exampleText.put("en", "proton beam");
@@ -62,9 +62,9 @@ public class TestBase {
     exampleText.put("fi", "protonisäde");
     exampleText.put("fr", "faisceau de protons");
     exampleText.put("hu", "protonnyaláb");
-    exampleText.put("id", "berkas proton");
+    exampleText.put("id", "sinar proton");
     exampleText.put("it", "fascio di protoni");
-    exampleText.put("ja", "陽子ビーム");
+    exampleText.put("ja", "陽子線");
     exampleText.put("ko", "양성자 빔");
     exampleText.put("lt", "protonų spindulys");
     exampleText.put("lv", "protonu staru kūlis");
@@ -73,9 +73,9 @@ public class TestBase {
     exampleText.put("pl", "wiązka protonów");
     exampleText.put("pt", "feixe de prótons");
     exampleText.put("pt-BR", "feixe de prótons");
-    exampleText.put("pt-PT", "feixe de prótons");
+    exampleText.put("pt-PT", "feixe de protões");
     exampleText.put("ro", "fascicul de protoni");
-    exampleText.put("ru", "протонный луч");
+    exampleText.put("ru", "протонный пучок");
     exampleText.put("sk", "protónový lúč");
     exampleText.put("sl", "protonski žarek");
     exampleText.put("sv", "protonstråle");

@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 package com.deepl.api;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,5 +195,39 @@ public class StyleRuleTest extends TestBase {
         client.translateText(text, "de", "en-US", new TextTranslationOptions().setStyleRule(rule));
 
     Assertions.assertNotNull(result);
+  }
+
+  @Test
+  void testTranslateDocumentWithStyleId() throws Exception {
+    // Note: this test may use the mock server that will not translate the document
+    // with a style rule, therefore we do not check the translated result.
+    Assumptions.assumeTrue(isMockServer);
+    DeepLClient client = createDeepLClient();
+    File inputFile = createInputFile("Hallo, Welt!");
+    File outputFile = createOutputFile();
+
+    client.translateDocument(
+        inputFile,
+        outputFile,
+        "de",
+        "en-US",
+        new DocumentTranslationOptions().setStyleId(DEFAULT_STYLE_ID));
+
+    Assertions.assertNotNull(readFromFile(outputFile));
+  }
+
+  @Test
+  void testTranslateDocumentWithStyleRuleInfo() throws Exception {
+    Assumptions.assumeTrue(isMockServer);
+    DeepLClient client = createDeepLClient();
+    List<StyleRuleInfo> styleRules = client.getAllStyleRules();
+    StyleRuleInfo rule = styleRules.get(0);
+    File inputFile = createInputFile("Hallo, Welt!");
+    File outputFile = createOutputFile();
+
+    client.translateDocument(
+        inputFile, outputFile, "de", "en-US", new DocumentTranslationOptions().setStyleRule(rule));
+
+    Assertions.assertNotNull(readFromFile(outputFile));
   }
 }

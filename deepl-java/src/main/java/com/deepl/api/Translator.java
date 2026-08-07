@@ -795,7 +795,8 @@ public class Translator {
             sourceLang,
             targetLang,
             options != null ? options.getFormality() : null,
-            options != null ? options.getGlossaryId() : null);
+            options != null ? options.getGlossaryId() : null,
+            options != null ? options.getGlossaryIds() : null);
     texts.forEach(
         (text) -> {
           if (text.isEmpty()) throw new IllegalArgumentException("text must not be empty");
@@ -892,7 +893,27 @@ public class Translator {
             sourceLang,
             targetLang,
             options != null ? options.getFormality() : null,
-            options != null ? options.getGlossaryId() : null);
+            options != null ? options.getGlossaryId() : null,
+            options != null ? options.getGlossaryIds() : null);
+
+    if (options != null) {
+      if (options.getStyleId() != null) {
+        params.add(new KeyValuePair<>("style_id", options.getStyleId()));
+      }
+      if (options.getTranslationMemoryId() != null) {
+        params.add(new KeyValuePair<>("translation_memory_id", options.getTranslationMemoryId()));
+      }
+      if (options.getTranslationMemoryThreshold() != null) {
+        if (options.getTranslationMemoryId() == null) {
+          throw new IllegalArgumentException(
+              "translationMemoryThreshold requires translationMemoryId");
+        }
+        params.add(
+            new KeyValuePair<>(
+                "translation_memory_threshold",
+                options.getTranslationMemoryThreshold().toString()));
+      }
+    }
 
     addExtraBodyParameters(params, options != null ? options.getExtraBodyParameters() : null);
 
@@ -908,13 +929,15 @@ public class Translator {
    * @param targetLang Language code of the desired output language.
    * @param formality Formality option for translation.
    * @param glossaryId ID of glossary to use for translation.
+   * @param glossaryIds List of glossary IDs to use for translation.
    * @return Iterable of parameters for HTTP request.
    */
   protected static ArrayList<KeyValuePair<String, String>> createHttpParamsCommon(
       @Nullable String sourceLang,
       String targetLang,
       @Nullable Formality formality,
-      @Nullable String glossaryId) {
+      @Nullable String glossaryId,
+      @Nullable List<String> glossaryIds) {
     targetLang = LanguageCode.standardize(targetLang);
     sourceLang = sourceLang == null ? null : LanguageCode.standardize(sourceLang);
     checkValidLanguages(sourceLang, targetLang);
@@ -951,6 +974,20 @@ public class Translator {
         throw new IllegalArgumentException("sourceLang is required if using a glossary");
       }
       params.add(new KeyValuePair<>("glossary_id", glossaryId));
+    }
+
+    if (glossaryIds != null && !glossaryIds.isEmpty()) {
+      if (glossaryId != null) {
+        throw new IllegalArgumentException(
+            "glossaryIds cannot be used together with glossaryId; use one or the other");
+      }
+      if (sourceLang == null) {
+        throw new IllegalArgumentException("sourceLang is required if using glossaries");
+      }
+      if (glossaryIds.size() > 5) {
+        throw new IllegalArgumentException("glossaryIds cannot contain more than 5 glossary IDs");
+      }
+      params.add(new KeyValuePair<>("glossary_ids", String.join(",", glossaryIds)));
     }
 
     return params;

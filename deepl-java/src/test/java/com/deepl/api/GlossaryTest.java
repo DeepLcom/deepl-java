@@ -355,4 +355,135 @@ public class GlossaryTest extends TestBase {
       Assertions.assertTrue(exception.getMessage().contains("targetLang=\"en\" is not allowed"));
     }
   }
+
+  @Test
+  void testGlossaryIdsTranslateTextBasic() throws Exception {
+    Translator translator = createTranslator();
+    try (GlossaryCleanupUtility cleanupEnDe1 = new GlossaryCleanupUtility(translator, "EnDe1");
+        GlossaryCleanupUtility cleanupEnDe2 = new GlossaryCleanupUtility(translator, "EnDe2")) {
+      String glossaryName1 = cleanupEnDe1.getGlossaryName();
+      String glossaryName2 = cleanupEnDe2.getGlossaryName();
+
+      GlossaryEntries entries1 = GlossaryEntries.fromTsv("Apple\tApfel");
+      GlossaryEntries entries2 = GlossaryEntries.fromTsv("Banana\tBanane");
+
+      GlossaryInfo glossary1 = translator.createGlossary(glossaryName1, "en", "de", entries1);
+      GlossaryInfo glossary2 = translator.createGlossary(glossaryName2, "en", "de", entries2);
+
+      List<String> textsEn =
+          new ArrayList<String>() {
+            {
+              add("Apple");
+              add("Banana");
+            }
+          };
+      List<String> textsDe =
+          new ArrayList<String>() {
+            {
+              add("Apfel");
+              add("Banane");
+            }
+          };
+
+      // Using a list of glossary IDs
+      List<TextResult> result =
+          translator.translateText(
+              textsEn,
+              "en",
+              "de",
+              new TextTranslationOptions()
+                  .setGlossaryIds(glossary1.getGlossaryId(), glossary2.getGlossaryId()));
+      Assertions.assertArrayEquals(
+          textsDe.toArray(), result.stream().map(TextResult::getText).toArray());
+
+      // Using GlossaryInfo objects
+      result =
+          translator.translateText(
+              textsEn,
+              "en",
+              "de",
+              new TextTranslationOptions().setGlossaries(glossary1, glossary2));
+      Assertions.assertArrayEquals(
+          textsDe.toArray(), result.stream().map(TextResult::getText).toArray());
+    }
+  }
+
+  @Test
+  void testGlossaryIdsTranslateDocument() throws Exception {
+    Translator translator = createTranslator();
+    try (GlossaryCleanupUtility cleanup1 = new GlossaryCleanupUtility(translator, "1");
+        GlossaryCleanupUtility cleanup2 = new GlossaryCleanupUtility(translator, "2")) {
+      String glossaryName1 = cleanup1.getGlossaryName();
+      String glossaryName2 = cleanup2.getGlossaryName();
+      File inputFile = createInputFile("artist\nprize");
+      File outputFile = createOutputFile();
+      String expectedOutput = "Maler\nGewinn";
+
+      GlossaryEntries entries1 = GlossaryEntries.fromTsv("artist\tMaler");
+      GlossaryEntries entries2 = GlossaryEntries.fromTsv("prize\tGewinn");
+
+      GlossaryInfo glossary1 =
+          translator.createGlossary(glossaryName1, sourceLang, targetLang, entries1);
+      GlossaryInfo glossary2 =
+          translator.createGlossary(glossaryName2, sourceLang, targetLang, entries2);
+
+      translator.translateDocument(
+          inputFile,
+          outputFile,
+          sourceLang,
+          targetLang,
+          new DocumentTranslationOptions()
+              .setGlossaryIds(glossary1.getGlossaryId(), glossary2.getGlossaryId()));
+      Assertions.assertEquals(expectedOutput, readFromFile(outputFile));
+    }
+  }
+
+  @Test
+  void testGlossaryIdsAndGlossaryIdMutuallyExclusive() throws Exception {
+    Translator translator = createTranslator();
+    IllegalArgumentException exception =
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                translator.translateText(
+                    "test",
+                    "en",
+                    "de",
+                    new TextTranslationOptions()
+                        .setGlossaryId(nonexistentGlossaryId)
+                        .setGlossaryIds(nonexistentGlossaryId)));
+    Assertions.assertTrue(
+        exception.getMessage().contains("cannot be used together with glossaryId"));
+  }
+
+  @Test
+  void testGlossaryIdsTooMany() throws Exception {
+    Translator translator = createTranslator();
+    IllegalArgumentException exception =
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                translator.translateText(
+                    "test",
+                    "en",
+                    "de",
+                    new TextTranslationOptions()
+                        .setGlossaryIds("id1", "id2", "id3", "id4", "id5", "id6")));
+    Assertions.assertTrue(exception.getMessage().contains("more than 5"));
+  }
+
+  @Test
+  void testGlossaryIdsMissingSourceLang() throws Exception {
+    Translator translator = createTranslator();
+    IllegalArgumentException exception =
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                translator.translateText(
+                    "test",
+                    null,
+                    "de",
+                    new TextTranslationOptions().setGlossaryIds(nonexistentGlossaryId)));
+    Assertions.assertTrue(exception.getMessage().contains("sourceLang is required"));
+  }
 }
