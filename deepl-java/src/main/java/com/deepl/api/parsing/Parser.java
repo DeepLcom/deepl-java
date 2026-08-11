@@ -28,6 +28,8 @@ public class Parser {
     gsonBuilder.registerTypeAdapter(WriteResult.class, new WriteResultDeserializer());
     gsonBuilder.registerTypeAdapter(Language.class, new LanguageDeserializer());
     gsonBuilder.registerTypeAdapter(Usage.class, new UsageDeserializer());
+    gsonBuilder.registerTypeAdapter(
+        TranslationMemoryJob.class, new TranslationMemoryJobDeserializer());
     gson = gsonBuilder.create();
   }
 
@@ -108,6 +110,25 @@ public class Parser {
     return gson.fromJson(json, TranslationMemoryInfo.class);
   }
 
+  public TranslationMemorySegments parseTranslationMemorySegments(String json) {
+    return gson.fromJson(json, TranslationMemorySegments.class);
+  }
+
+  public TranslationMemoryImport parseTranslationMemoryImport(String json) {
+    return gson.fromJson(json, TranslationMemoryImport.class);
+  }
+
+  public TranslationMemoryExport parseTranslationMemoryExport(String json, boolean reusedExisting) {
+    TranslationMemoryExportResponse response =
+        gson.fromJson(json, TranslationMemoryExportResponse.class);
+    return new TranslationMemoryExport(
+        response.getJobId(), response.getTranslationMemoryId(), reusedExisting);
+  }
+
+  public TranslationMemoryJob parseTranslationMemoryJob(String json) {
+    return gson.fromJson(json, TranslationMemoryJob.class);
+  }
+
   public CustomInstruction parseCustomInstruction(String json) {
     return gson.fromJson(json, CustomInstruction.class);
   }
@@ -123,17 +144,20 @@ public class Parser {
   }
 
   static @Nullable Integer getAsIntOrNull(JsonObject jsonObject, String parameterName) {
-    if (!jsonObject.has(parameterName)) return null;
+    // An explicit JSON null must be treated as absent: getAsX() throws on JsonNull.
+    if (!jsonObject.has(parameterName) || jsonObject.get(parameterName).isJsonNull()) return null;
     return jsonObject.get(parameterName).getAsInt();
   }
 
   static @Nullable Long getAsLongOrNull(JsonObject jsonObject, String parameterName) {
-    if (!jsonObject.has(parameterName)) return null;
+    // An explicit JSON null must be treated as absent: getAsX() throws on JsonNull.
+    if (!jsonObject.has(parameterName) || jsonObject.get(parameterName).isJsonNull()) return null;
     return jsonObject.get(parameterName).getAsLong();
   }
 
   static @Nullable String getAsStringOrNull(JsonObject jsonObject, String parameterName) {
-    if (!jsonObject.has(parameterName)) return null;
+    // An explicit JSON null must be treated as absent: getAsX() throws on JsonNull.
+    if (!jsonObject.has(parameterName) || jsonObject.get(parameterName).isJsonNull()) return null;
     return jsonObject.get(parameterName).getAsString();
   }
 

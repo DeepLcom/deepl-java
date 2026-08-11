@@ -5,10 +5,13 @@
 package com.deepl.api;
 
 import com.deepl.api.http.HttpResponse;
+import com.deepl.api.http.HttpResponseStream;
 import com.deepl.api.utils.*;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +19,12 @@ import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 public class DeepLClient extends Translator {
+
+  /** Default MIME type of translation memory (TMX) files. */
+  public static final String TRANSLATION_MEMORY_FILE_CONTENT_TYPE = "application/xml";
+
+  /** Time to wait between polls of the status of a translation memory job, in milliseconds. */
+  private static final long TRANSLATION_MEMORY_JOB_POLL_INTERVAL_MILLIS = 5000;
 
   /**
    * Initializes a new DeepLClient object using your Authentication Key.
@@ -768,26 +777,7 @@ public class DeepLClient extends Translator {
       queryParams.add(new KeyValuePair<>("detailed", detailed.toString().toLowerCase()));
     }
 
-    String queryString = "";
-    if (!queryParams.isEmpty()) {
-      StringBuilder sb = new StringBuilder("?");
-      for (int i = 0; i < queryParams.size(); i++) {
-        if (i > 0) {
-          sb.append("&");
-        }
-        KeyValuePair<String, String> param = queryParams.get(i);
-        try {
-          sb.append(URLEncoder.encode(param.getKey(), StandardCharsets.UTF_8.name()))
-              .append("=")
-              .append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8.name()));
-        } catch (java.io.UnsupportedEncodingException e) {
-          throw new RuntimeException("UTF-8 encoding not supported", e);
-        }
-      }
-      queryString = sb.toString();
-    }
-
-    String relativeUrl = "/v3/style_rules" + queryString;
+    String relativeUrl = "/v3/style_rules" + createQueryString(queryParams);
     HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
     checkResponse(response, false, false);
     return jsonParser.parseStyleRuleInfoList(response.getBody());
@@ -825,40 +815,576 @@ public class DeepLClient extends Translator {
       queryParams.add(new KeyValuePair<>("page_size", pageSize.toString()));
     }
 
-    String queryString = "";
-    if (!queryParams.isEmpty()) {
-      StringBuilder sb = new StringBuilder("?");
-      for (int i = 0; i < queryParams.size(); i++) {
-        if (i > 0) {
-          sb.append("&");
-        }
-        KeyValuePair<String, String> param = queryParams.get(i);
-        try {
-          sb.append(URLEncoder.encode(param.getKey(), StandardCharsets.UTF_8.name()))
-              .append("=")
-              .append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8.name()));
-        } catch (java.io.UnsupportedEncodingException e) {
-          throw new RuntimeException("UTF-8 encoding not supported", e);
-        }
-      }
-      queryString = sb.toString();
-    }
-
-    String relativeUrl = "/v3/translation_memories" + queryString;
+    String relativeUrl = "/v3/translation_memories" + createQueryString(queryParams);
     HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
     checkResponse(response, false, false);
     return jsonParser.parseTranslationMemoryInfoList(response.getBody());
   }
 
   /**
-   * Functions the same as {@link DeepLClient#listTranslationMemories(Integer, Integer, Boolean)}
-   * but with default parameters (all null).
+   * Functions the same as {@link DeepLClient#listTranslationMemories(Integer, Integer)} but with
+   * default parameters (all null).
    *
    * @see DeepLClient#listTranslationMemories(Integer, Integer)
    */
   public List<TranslationMemoryInfo> listTranslationMemories()
       throws DeepLException, InterruptedException {
     return listTranslationMemories(null, null);
+  }
+
+  /**
+   * Retrieves information about the translation memory with the specified ID and returns a {@link
+   * TranslationMemoryInfo} object containing details.
+   *
+   * @param translationMemoryId ID of the translation memory to retrieve.
+   * @return {@link TranslationMemoryInfo} object with details about the translation memory.
+   * @throws NotFoundException If no translation memory with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public TranslationMemoryInfo getTranslationMemory(String translationMemoryId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("translationMemoryId", translationMemoryId);
+    String relativeUrl = String.format("/v3/translation_memories/%s", translationMemoryId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseTranslationMemoryInfo(response.getBody());
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#getTranslationMemory(String)} but accepts a {@link
+   * TranslationMemoryInfo} object.
+   *
+   * @see DeepLClient#getTranslationMemory(String)
+   */
+  public TranslationMemoryInfo getTranslationMemory(TranslationMemoryInfo translationMemory)
+      throws DeepLException, InterruptedException, NotFoundException {
+    return getTranslationMemory(translationMemoryId(translationMemory));
+  }
+
+  /**
+   * Retrieves one page of the segments of the translation memory with the specified ID.
+   *
+   * <p>Pagination is cursor-based: omit the page cursor on the first call, then pass the previous
+   * response's {@link TranslationMemorySegments#getNextPageCursor()} to fetch the next page. An
+   * absent next page cursor means the last page has been returned.
+   *
+   * @param translationMemoryId ID of the translation memory to retrieve the segments of.
+   * @param options Options influencing the returned page, or <code>null</code>.
+   * @return {@link TranslationMemorySegments} object containing the requested page.
+   * @throws NotFoundException If no translation memory with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public TranslationMemorySegments listTranslationMemorySegments(
+      String translationMemoryId, @Nullable TranslationMemorySegmentsOptions options)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("translationMemoryId", translationMemoryId);
+    ArrayList<KeyValuePair<String, String>> queryParams = new ArrayList<>();
+    if (options != null) {
+      if (options.getPageSize() != null) {
+        queryParams.add(new KeyValuePair<>("page_size", options.getPageSize().toString()));
+      }
+      if (options.getPageCursor() != null) {
+        queryParams.add(new KeyValuePair<>("page_cursor", options.getPageCursor()));
+      }
+      if (options.getFilterText() != null) {
+        queryParams.add(new KeyValuePair<>("filter_text", options.getFilterText()));
+      }
+      if (options.getFilterCaseSensitive() != null) {
+        queryParams.add(
+            new KeyValuePair<>(
+                "filter_case_sensitive", options.getFilterCaseSensitive().toString()));
+      }
+    }
+
+    String relativeUrl =
+        String.format("/v3/translation_memories/%s/segments", translationMemoryId)
+            + createQueryString(queryParams);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseTranslationMemorySegments(response.getBody());
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#listTranslationMemorySegments(String,
+   * TranslationMemorySegmentsOptions)} but with default options.
+   *
+   * @see DeepLClient#listTranslationMemorySegments(String, TranslationMemorySegmentsOptions)
+   */
+  public TranslationMemorySegments listTranslationMemorySegments(String translationMemoryId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    return listTranslationMemorySegments(translationMemoryId, null);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#listTranslationMemorySegments(String,
+   * TranslationMemorySegmentsOptions)} but accepts a {@link TranslationMemoryInfo} object.
+   *
+   * @see DeepLClient#listTranslationMemorySegments(String, TranslationMemorySegmentsOptions)
+   */
+  public TranslationMemorySegments listTranslationMemorySegments(
+      TranslationMemoryInfo translationMemory, @Nullable TranslationMemorySegmentsOptions options)
+      throws DeepLException, InterruptedException, NotFoundException {
+    return listTranslationMemorySegments(translationMemoryId(translationMemory), options);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#listTranslationMemorySegments(String,
+   * TranslationMemorySegmentsOptions)} but accepts a {@link TranslationMemoryInfo} object and uses
+   * default options.
+   *
+   * @see DeepLClient#listTranslationMemorySegments(String, TranslationMemorySegmentsOptions)
+   */
+  public TranslationMemorySegments listTranslationMemorySegments(
+      TranslationMemoryInfo translationMemory)
+      throws DeepLException, InterruptedException, NotFoundException {
+    return listTranslationMemorySegments(translationMemoryId(translationMemory), null);
+  }
+
+  /**
+   * Deletes the translation memory with the specified ID.
+   *
+   * @param translationMemoryId ID of the translation memory to delete.
+   * @throws NotFoundException If no translation memory with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public void deleteTranslationMemory(String translationMemoryId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("translationMemoryId", translationMemoryId);
+    String relativeUrl = String.format("/v3/translation_memories/%s", translationMemoryId);
+    HttpResponse response = httpClientWrapper.sendDeleteRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#deleteTranslationMemory(String)} but accepts a {@link
+   * TranslationMemoryInfo} object.
+   *
+   * @see DeepLClient#deleteTranslationMemory(String)
+   */
+  public void deleteTranslationMemory(TranslationMemoryInfo translationMemory)
+      throws DeepLException, InterruptedException, NotFoundException {
+    deleteTranslationMemory(translationMemoryId(translationMemory));
+  }
+
+  /**
+   * Creates an import job for a new translation memory.
+   *
+   * <p>The job only declares the file; upload the TMX file itself to the returned upload URL with
+   * {@link DeepLClient#uploadTranslationMemoryFile(TranslationMemoryImport, byte[])}, then poll
+   * {@link DeepLClient#getTranslationMemoryJob(String)} for the outcome. Use {@link
+   * DeepLClient#importTranslationMemoryFromFilepath(File, String)} to do all three steps at once.
+   *
+   * @param fileName Name of the TMX file to import, for example "legal.tmx".
+   * @param contentLength Size of the TMX file in bytes.
+   * @param contentType Optional MIME type of the file, defaults to "application/xml".
+   * @param displayName Optional name for the resulting translation memory, defaults to the file
+   *     name.
+   * @return {@link TranslationMemoryImport} object with the job ID and upload URL.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public TranslationMemoryImport createTranslationMemoryImport(
+      String fileName,
+      long contentLength,
+      @Nullable String contentType,
+      @Nullable String displayName)
+      throws DeepLException, InterruptedException {
+    validateParameter("fileName", fileName);
+    if (contentLength <= 0) {
+      throw new IllegalArgumentException("contentLength must be greater than 0");
+    }
+
+    Map<String, Object> sourceFile = new HashMap<>();
+    sourceFile.put("file_name", fileName);
+    sourceFile.put("content_length", contentLength);
+    if (contentType != null) {
+      sourceFile.put("content_type", contentType);
+    }
+    Map<String, Object> requestData = new HashMap<>();
+    requestData.put("source_file", sourceFile);
+    if (displayName != null) {
+      Map<String, Object> parameters = new HashMap<>();
+      parameters.put("display_name", displayName);
+      requestData.put("parameters", parameters);
+    }
+
+    String jsonBody = jsonParser.getGson().toJson(requestData);
+    HttpResponse response =
+        httpClientWrapper.sendJsonRequestWithBackoff("/v3/translation_memories/import", jsonBody);
+    checkResponse(response, false, false);
+    return jsonParser.parseTranslationMemoryImport(response.getBody());
+  }
+
+  /**
+   * Uploads a TMX file to the upload URL of an import job, which starts processing.
+   *
+   * <p>The upload URL is a pre-signed storage URL outside of the DeepL API, so the authentication
+   * key is not sent with this request.
+   *
+   * @param uploadUrl Upload URL returned by {@link
+   *     DeepLClient#createTranslationMemoryImport(String, long, String, String)}.
+   * @param fileContent Content of the TMX file to upload.
+   * @param contentType MIME type of the file, which must match the content type declared when the
+   *     import job was created.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while uploading the file.
+   */
+  public void uploadTranslationMemoryFile(String uploadUrl, byte[] fileContent, String contentType)
+      throws DeepLException, InterruptedException {
+    validateParameter("uploadUrl", uploadUrl);
+    validateParameter("contentType", contentType);
+    if (fileContent == null) {
+      throw new IllegalArgumentException("fileContent must not be null");
+    }
+    HttpResponse response =
+        httpClientWrapper.sendAssetPutRequestWithBackoff(uploadUrl, fileContent, contentType);
+    if (response.getCode() < 200 || response.getCode() >= 300) {
+      throw new DeepLException(
+          String.format(
+              "Error uploading translation memory file, HTTP status: %d", response.getCode()));
+    }
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#uploadTranslationMemoryFile(String, byte[], String)}
+   * but accepts the {@link TranslationMemoryImport} object holding the upload URL.
+   *
+   * @see DeepLClient#uploadTranslationMemoryFile(String, byte[], String)
+   */
+  public void uploadTranslationMemoryFile(
+      TranslationMemoryImport translationMemoryImport, byte[] fileContent, String contentType)
+      throws DeepLException, InterruptedException {
+    if (translationMemoryImport == null) {
+      throw new IllegalArgumentException("translationMemoryImport must not be null");
+    }
+    uploadTranslationMemoryFile(translationMemoryImport.getUploadUrl(), fileContent, contentType);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#uploadTranslationMemoryFile(TranslationMemoryImport,
+   * byte[], String)} but uses the default content type "application/xml".
+   *
+   * @see DeepLClient#uploadTranslationMemoryFile(TranslationMemoryImport, byte[], String)
+   */
+  public void uploadTranslationMemoryFile(
+      TranslationMemoryImport translationMemoryImport, byte[] fileContent)
+      throws DeepLException, InterruptedException {
+    uploadTranslationMemoryFile(
+        translationMemoryImport, fileContent, TRANSLATION_MEMORY_FILE_CONTENT_TYPE);
+  }
+
+  /**
+   * Creates an export job for the translation memory with the specified ID.
+   *
+   * <p>Poll {@link DeepLClient#getTranslationMemoryJob(String)} for the download URL of the
+   * exported TMX file. Use {@link DeepLClient#exportTranslationMemoryToFilepath(String, File)} to
+   * do both steps and write the file at once.
+   *
+   * @param translationMemoryId ID of the translation memory to export.
+   * @return {@link TranslationMemoryExport} object with the job ID, and whether the API reused a
+   *     previously completed export.
+   * @throws NotFoundException If no translation memory with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public TranslationMemoryExport createTranslationMemoryExport(String translationMemoryId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("translationMemoryId", translationMemoryId);
+    String relativeUrl = String.format("/v3/translation_memories/%s/export", translationMemoryId);
+    HttpResponse response = httpClientWrapper.sendRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    // 200 means the API reused a previously completed export, 202 that it started a new one.
+    return jsonParser.parseTranslationMemoryExport(response.getBody(), response.getCode() == 200);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#createTranslationMemoryExport(String)} but accepts a
+   * {@link TranslationMemoryInfo} object.
+   *
+   * @see DeepLClient#createTranslationMemoryExport(String)
+   */
+  public TranslationMemoryExport createTranslationMemoryExport(
+      TranslationMemoryInfo translationMemory)
+      throws DeepLException, InterruptedException, NotFoundException {
+    return createTranslationMemoryExport(translationMemoryId(translationMemory));
+  }
+
+  /**
+   * Retrieves the status of the translation memory import or export job with the specified ID.
+   *
+   * @param jobId ID of the job to query.
+   * @return {@link TranslationMemoryJob} object with the current status of the job.
+   * @throws NotFoundException If no job with the given ID is found.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If any error occurs while communicating with the DeepL API.
+   */
+  public TranslationMemoryJob getTranslationMemoryJob(String jobId)
+      throws DeepLException, InterruptedException, NotFoundException {
+    validateParameter("jobId", jobId);
+    String relativeUrl = String.format("/v3/translation_memories/jobs/%s", jobId);
+    HttpResponse response = httpClientWrapper.sendGetRequestWithBackoff(relativeUrl);
+    checkResponse(response, false, false);
+    return jsonParser.parseTranslationMemoryJob(response.getBody());
+  }
+
+  /**
+   * Polls the translation memory job with the specified ID until it finishes, sleeping between
+   * requests, and returns the final status.
+   *
+   * <p>Note that an import job keeps reporting {@link
+   * TranslationMemoryJobResult.Status#AwaitingInput} for a while after its file has been uploaded,
+   * because the API detects the upload asynchronously. That status is therefore polled through like
+   * any other non-terminal one. A job whose file is never uploaded does not finish on its own, so
+   * use {@link DeepLClient#waitUntilTranslationMemoryJobDone(String, Duration)} to pass a timeout
+   * when that is a possibility.
+   *
+   * @param jobId ID of the job to wait for.
+   * @return {@link TranslationMemoryJob} object with the status of the finished job.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the job failed or expired, or any error occurs while communicating
+   *     with the DeepL API.
+   */
+  public TranslationMemoryJob waitUntilTranslationMemoryJobDone(String jobId)
+      throws DeepLException, InterruptedException {
+    return waitUntilTranslationMemoryJobDone(jobId, null);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#waitUntilTranslationMemoryJobDone(String)} but gives
+   * up after the specified timeout.
+   *
+   * @param jobId ID of the job to wait for.
+   * @param timeout Maximum time to wait before throwing, or <code>null</code> to wait indefinitely.
+   *     Note that this is not accurate to the millisecond, as the job status is only polled every 5
+   *     seconds.
+   * @return {@link TranslationMemoryJob} object with the status of the finished job.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the timeout is exceeded, the job failed or expired, or any error
+   *     occurs while communicating with the DeepL API.
+   * @see DeepLClient#waitUntilTranslationMemoryJobDone(String)
+   */
+  public TranslationMemoryJob waitUntilTranslationMemoryJobDone(
+      String jobId, @Nullable Duration timeout) throws DeepLException, InterruptedException {
+    long startTimeMillis = System.currentTimeMillis();
+    TranslationMemoryJob job = getTranslationMemoryJob(jobId);
+    while (!job.done()) {
+      // The API always returns exactly one result; an empty list would never reach a terminal
+      // status and the no-timeout overload would poll forever.
+      if (job.getResults().isEmpty()) {
+        throw new DeepLException("Translation memory job " + jobId + " returned no results");
+      }
+      if (timeout != null && System.currentTimeMillis() - startTimeMillis > timeout.toMillis()) {
+        throw new DeepLException(
+            String.format(
+                "Manual timeout of %ds exceeded for translation memory job", timeout.getSeconds()));
+      }
+      Thread.sleep(TRANSLATION_MEMORY_JOB_POLL_INTERVAL_MILLIS);
+      job = getTranslationMemoryJob(jobId);
+    }
+    if (!job.ok()) {
+      TranslationMemoryJobResult result = job.getResult();
+      String message =
+          (result != null && result.getErrorMessage() != null)
+              ? result.getErrorMessage()
+              : "Unknown error";
+      throw new DeepLException(message);
+    }
+    return job;
+  }
+
+  /**
+   * Downloads the TMX file of a completed export job to the specified output file.
+   *
+   * <p>The download URL is a pre-signed storage URL outside of the DeepL API, so the authentication
+   * key is not sent with this request.
+   *
+   * @param job Completed export job carrying the download URL.
+   * @param outputFile File to download the exported translation memory to.
+   * @throws IOException If the output path is occupied.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the job has no download URL, or any error occurs while downloading.
+   */
+  public void downloadTranslationMemoryExport(TranslationMemoryJob job, File outputFile)
+      throws DeepLException, IOException, InterruptedException {
+    // Checked before the try so the cleanup below only ever deletes a file this call created:
+    // otherwise the guard protecting an existing file would be what destroys it.
+    if (outputFile.exists()) {
+      throw new IOException("File already exists at output path");
+    }
+    try {
+      try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+        downloadTranslationMemoryExport(job, outputStream);
+      }
+    } catch (Exception exception) {
+      outputFile.delete();
+      throw exception;
+    }
+  }
+
+  /**
+   * Downloads the TMX file of a completed export job to the specified output stream. The output
+   * stream is not closed.
+   *
+   * @param job Completed export job carrying the download URL.
+   * @param outputStream Stream to download the exported translation memory to.
+   * @throws IOException If an I/O error occurs.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the job has no download URL, or any error occurs while downloading.
+   * @see DeepLClient#downloadTranslationMemoryExport(TranslationMemoryJob, File)
+   */
+  public void downloadTranslationMemoryExport(TranslationMemoryJob job, OutputStream outputStream)
+      throws DeepLException, IOException, InterruptedException {
+    if (job == null) {
+      throw new IllegalArgumentException("job must not be null");
+    }
+    TranslationMemoryJobResult result = job.getResult();
+    String downloadUrl = (result == null) ? null : result.getDownloadUrl();
+    if (downloadUrl == null || downloadUrl.isEmpty()) {
+      throw new DeepLException(
+          "Translation memory export job has no download URL, it may not have completed yet");
+    }
+
+    try (HttpResponseStream response = httpClientWrapper.downloadAssetWithBackoff(downloadUrl)) {
+      if (response.getCode() < 200 || response.getCode() >= 300) {
+        throw new DeepLException(
+            String.format(
+                "Error downloading translation memory export, HTTP status: %d",
+                response.getCode()));
+      }
+      assert response.getBody() != null;
+      StreamUtil.transferTo(response.getBody(), outputStream);
+    }
+  }
+
+  /**
+   * Imports a TMX file as a new translation memory: creates the import job, uploads the file, and
+   * waits for processing to finish.
+   *
+   * @param inputFile TMX file to import.
+   * @param displayName Optional name for the resulting translation memory, defaults to the file
+   *     name.
+   * @return {@link TranslationMemoryJob} object for the completed import; its result carries the ID
+   *     of the new translation memory.
+   * @throws IOException If the input file cannot be read.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the import fails, or any error occurs while communicating with the
+   *     DeepL API.
+   */
+  public TranslationMemoryJob importTranslationMemoryFromFilepath(
+      File inputFile, @Nullable String displayName)
+      throws DeepLException, IOException, InterruptedException {
+    return importTranslationMemoryFromFilepath(inputFile, displayName, null);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#importTranslationMemoryFromFilepath(File, String)} but
+   * gives up waiting for the import after the specified timeout.
+   *
+   * @param inputFile TMX file to import.
+   * @param displayName Optional name for the resulting translation memory, defaults to the file
+   *     name.
+   * @param timeout Maximum time to wait for the import to finish, or <code>null</code> to wait
+   *     indefinitely. Note that this is not accurate to the millisecond, as the job status is only
+   *     polled every 5 seconds.
+   * @return {@link TranslationMemoryJob} object for the completed import; its result carries the ID
+   *     of the new translation memory.
+   * @throws IOException If the input file cannot be read.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the timeout is exceeded, the import fails, or any error occurs while
+   *     communicating with the DeepL API.
+   * @see DeepLClient#importTranslationMemoryFromFilepath(File, String)
+   */
+  public TranslationMemoryJob importTranslationMemoryFromFilepath(
+      File inputFile, @Nullable String displayName, @Nullable Duration timeout)
+      throws DeepLException, IOException, InterruptedException {
+    if (inputFile == null || !inputFile.exists()) {
+      throw new IllegalArgumentException("inputFile must be an existing file");
+    }
+    byte[] fileContent = Files.readAllBytes(inputFile.toPath());
+    TranslationMemoryImport translationMemoryImport =
+        createTranslationMemoryImport(inputFile.getName(), fileContent.length, null, displayName);
+    uploadTranslationMemoryFile(translationMemoryImport, fileContent);
+    return waitUntilTranslationMemoryJobDone(translationMemoryImport.getJobId(), timeout);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#importTranslationMemoryFromFilepath(File, String)} but
+   * lets the API name the translation memory after the file.
+   *
+   * @see DeepLClient#importTranslationMemoryFromFilepath(File, String)
+   */
+  public TranslationMemoryJob importTranslationMemoryFromFilepath(File inputFile)
+      throws DeepLException, IOException, InterruptedException {
+    return importTranslationMemoryFromFilepath(inputFile, null);
+  }
+
+  /**
+   * Exports a translation memory to a TMX file: creates the export job, waits for it to finish, and
+   * writes the result to the specified output file.
+   *
+   * @param translationMemoryId ID of the translation memory to export.
+   * @param outputFile File to write the exported translation memory to.
+   * @return {@link TranslationMemoryJob} object for the completed export.
+   * @throws IOException If the output path is occupied.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the export fails, or any error occurs while communicating with the
+   *     DeepL API.
+   */
+  public TranslationMemoryJob exportTranslationMemoryToFilepath(
+      String translationMemoryId, File outputFile)
+      throws DeepLException, IOException, InterruptedException {
+    return exportTranslationMemoryToFilepath(translationMemoryId, outputFile, null);
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#exportTranslationMemoryToFilepath(String, File)} but
+   * gives up waiting for the export after the specified timeout.
+   *
+   * @param translationMemoryId ID of the translation memory to export.
+   * @param outputFile File to write the exported translation memory to.
+   * @param timeout Maximum time to wait for the export to finish, or <code>null</code> to wait
+   *     indefinitely. Note that this is not accurate to the millisecond, as the job status is only
+   *     polled every 5 seconds.
+   * @return {@link TranslationMemoryJob} object for the completed export.
+   * @throws IOException If the output path is occupied.
+   * @throws InterruptedException If the thread is interrupted during execution of this function.
+   * @throws DeepLException If the timeout is exceeded, the export fails, or any error occurs while
+   *     communicating with the DeepL API.
+   * @see DeepLClient#exportTranslationMemoryToFilepath(String, File)
+   */
+  public TranslationMemoryJob exportTranslationMemoryToFilepath(
+      String translationMemoryId, File outputFile, @Nullable Duration timeout)
+      throws DeepLException, IOException, InterruptedException {
+    TranslationMemoryExport translationMemoryExport =
+        createTranslationMemoryExport(translationMemoryId);
+    TranslationMemoryJob job =
+        waitUntilTranslationMemoryJobDone(translationMemoryExport.getJobId(), timeout);
+    downloadTranslationMemoryExport(job, outputFile);
+    return job;
+  }
+
+  /**
+   * Functions the same as {@link DeepLClient#exportTranslationMemoryToFilepath(String, File)} but
+   * accepts a {@link TranslationMemoryInfo} object.
+   *
+   * @see DeepLClient#exportTranslationMemoryToFilepath(String, File)
+   */
+  public TranslationMemoryJob exportTranslationMemoryToFilepath(
+      TranslationMemoryInfo translationMemory, File outputFile)
+      throws DeepLException, IOException, InterruptedException {
+    return exportTranslationMemoryToFilepath(translationMemoryId(translationMemory), outputFile);
+  }
+
+  /** Extracts the ID of the given translation memory. */
+  private static String translationMemoryId(TranslationMemoryInfo translationMemory)
+      throws IllegalArgumentException {
+    if (translationMemory == null) {
+      throw new IllegalArgumentException("translationMemory must not be null");
+    }
+    return translationMemory.getTranslationMemoryId();
   }
 
   /**
@@ -1180,6 +1706,36 @@ public class DeepLClient extends Translator {
     } catch (UnsupportedEncodingException exception) {
       throw new DeepLException("Error while URL-encoding request", exception);
     }
+  }
+
+  /** Creates the query string for the given parameters, including the leading "?" if non-empty. */
+  private static String createQueryString(List<KeyValuePair<String, String>> queryParams) {
+    if (queryParams.isEmpty()) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder("?");
+    for (int i = 0; i < queryParams.size(); i++) {
+      if (i > 0) {
+        sb.append("&");
+      }
+      KeyValuePair<String, String> param = queryParams.get(i);
+      try {
+        sb.append(encodeQueryComponent(param.getKey()))
+            .append("=")
+            .append(encodeQueryComponent(param.getValue()));
+      } catch (java.io.UnsupportedEncodingException e) {
+        throw new RuntimeException("UTF-8 encoding not supported", e);
+      }
+    }
+    return sb.toString();
+  }
+
+  // URLEncoder encodes a space as "+", which is correct for a form body but not for a URI query
+  // string. Any literal "+" is already escaped as %2B by URLEncoder, so every remaining "+" is a
+  // space.
+  private static String encodeQueryComponent(String value)
+      throws java.io.UnsupportedEncodingException {
+    return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replace("+", "%20");
   }
 
   private void validateParameter(String paramName, String value) throws IllegalArgumentException {

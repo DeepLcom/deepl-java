@@ -14,8 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for translation memories in document translation via
   `setTranslationMemory()`/`setTranslationMemoryId()`/`setTranslationMemoryThreshold()`
   in `DocumentTranslationOptions`.
+- Added support for the translation memory management endpoints in the
+  `DeepLClient` class: `getTranslationMemory()`,
+  `listTranslationMemorySegments()`, `deleteTranslationMemory()`,
+  `createTranslationMemoryImport()`, `uploadTranslationMemoryFile()`,
+  `createTranslationMemoryExport()`, `getTranslationMemoryJob()`,
+  `waitUntilTranslationMemoryJobDone()`, `downloadTranslationMemoryExport()`,
+  `importTranslationMemoryFromFilepath()` and
+  `exportTranslationMemoryToFilepath()`.
+- Added `creationTime` and `updatedTime` to `TranslationMemoryInfo`.
+- Added optional timeouts to `waitUntilTranslationMemoryJobDone()`,
+  `importTranslationMemoryFromFilepath()` and
+  `exportTranslationMemoryToFilepath()`.
 
 ### Fixed
+- Fixed `waitUntilTranslationMemoryJobDone()` throwing when a translation memory
+  job reports `AwaitingInput`. An import job keeps reporting that status for a
+  while after its file has been uploaded, because the API detects the upload
+  asynchronously, so it is now polled through like any other non-terminal
+  status.
 - Fixed incorrect example texts in the test suite for several languages (Danish,
   Indonesian, Japanese, Portuguese, and Russian) to match the mock server.
 

@@ -18,6 +18,7 @@ public class SessionOptions {
   public Integer documentFailure;
   public Duration documentQueueTime;
   public Duration documentTranslateTime;
+  public Integer translationMemoryJobProcessingPolls;
   public Boolean expectProxy;
 
   public boolean randomAuthKey;
@@ -58,6 +59,11 @@ public class SessionOptions {
       headers.put(
           "mock-server-session-doc-translate-time",
           Long.toString(documentTranslateTime.toMillis()));
+    }
+    if (translationMemoryJobProcessingPolls != null) {
+      headers.put(
+          "mock-server-session-tm-job-processing-polls",
+          translationMemoryJobProcessingPolls.toString());
     }
     if (expectProxy != null) {
       headers.put("mock-server-session-expect-proxy", expectProxy ? "1" : "0");
@@ -103,6 +109,16 @@ public class SessionOptions {
 
   public SessionOptions setDocumentTranslateTime(Duration documentTranslateTime) {
     this.documentTranslateTime = documentTranslateTime;
+    return this;
+  }
+
+  /**
+   * Makes translation memory import and export jobs report their non-terminal status the given
+   * number of times before completing, so that polling loops are exercised.
+   */
+  public SessionOptions setTranslationMemoryJobProcessingPolls(
+      int translationMemoryJobProcessingPolls) {
+    this.translationMemoryJobProcessingPolls = translationMemoryJobProcessingPolls;
     return this;
   }
 

@@ -204,15 +204,45 @@ class HttpClientWrapper {
     return sendRequestWithBackoff(POST, relativeUrl, content).toStringResponse();
   }
 
+  /**
+   * Uploads content to an absolute URL outside of the DeepL API, for example a pre-signed storage
+   * URL returned by a translation memory import job. The DeepL headers, in particular the
+   * Authorization header, are deliberately not sent to third-party storage.
+   */
+  public HttpResponse sendAssetPutRequestWithBackoff(
+      String url, byte[] fileContent, String contentType)
+      throws InterruptedException, DeepLException {
+    HttpContent content = HttpContent.buildRawContent(contentType, fileContent);
+    return sendRequestToUrlWithBackoff(PUT, url, content, Collections.emptyMap())
+        .toStringResponse();
+  }
+
+  /**
+   * Downloads content from an absolute URL outside of the DeepL API, for example a pre-signed
+   * storage URL returned by a completed translation memory export job. The DeepL headers, in
+   * particular the Authorization header, are deliberately not sent to third-party storage.
+   */
+  public HttpResponseStream downloadAssetWithBackoff(String url)
+      throws InterruptedException, DeepLException {
+    return sendRequestToUrlWithBackoff(GET, url, null, Collections.emptyMap());
+  }
+
   // Sends a request with exponential backoff
   private HttpResponseStream sendRequestWithBackoff(
       String method, String relativeUrl, HttpContent content)
+      throws InterruptedException, DeepLException {
+    return sendRequestToUrlWithBackoff(method, serverUrl + relativeUrl, content, this.headers);
+  }
+
+  // Sends a request to an absolute URL with exponential backoff
+  private HttpResponseStream sendRequestToUrlWithBackoff(
+      String method, String url, @Nullable HttpContent content, Map<String, String> requestHeaders)
       throws InterruptedException, DeepLException {
     BackoffTimer backoffTimer = new BackoffTimer(this.minTimeout);
     while (true) {
       try {
         HttpResponseStream response =
-            sendRequest(method, serverUrl + relativeUrl, backoffTimer.getTimeoutMillis(), content);
+            sendRequest(method, url, backoffTimer.getTimeoutMillis(), content, requestHeaders);
         if (backoffTimer.getNumRetries() >= this.maxRetries) {
           return response;
         } else if (response.getCode() != 429 && response.getCode() < 500) {
@@ -229,7 +259,11 @@ class HttpClientWrapper {
   }
 
   private HttpResponseStream sendRequest(
-      String method, String urlString, long timeoutMs, HttpContent content)
+      String method,
+      String urlString,
+      long timeoutMs,
+      @Nullable HttpContent content,
+      Map<String, String> requestHeaders)
       throws ConnectionException {
     try {
       URL url = new URL(urlString);
@@ -241,7 +275,7 @@ class HttpClientWrapper {
       connection.setReadTimeout((int) timeoutMs);
       connection.setUseCaches(false);
 
-      for (Map.Entry<String, String> entry : this.headers.entrySet()) {
+      for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
         connection.setRequestProperty(entry.getKey(), entry.getValue());
       }
 

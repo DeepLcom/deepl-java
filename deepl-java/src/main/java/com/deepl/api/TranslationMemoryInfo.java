@@ -5,6 +5,7 @@ package com.deepl.api;
 
 import com.google.gson.annotations.*;
 import java.util.*;
+import org.jetbrains.annotations.*;
 
 /** Information about a translation memory. */
 public class TranslationMemoryInfo {
@@ -23,6 +24,12 @@ public class TranslationMemoryInfo {
   @SerializedName(value = "segment_count")
   private final int segmentCount;
 
+  @SerializedName(value = "creation_time")
+  private final @Nullable Date creationTime;
+
+  @SerializedName(value = "updated_time")
+  private final @Nullable Date updatedTime;
+
   /**
    * Initializes a new {@link TranslationMemoryInfo} containing information about a translation
    * memory.
@@ -39,11 +46,37 @@ public class TranslationMemoryInfo {
       String sourceLanguage,
       List<String> targetLanguages,
       int segmentCount) {
+    this(translationMemoryId, name, sourceLanguage, targetLanguages, segmentCount, null, null);
+  }
+
+  /**
+   * Initializes a new {@link TranslationMemoryInfo} containing information about a translation
+   * memory.
+   *
+   * @param translationMemoryId Unique ID assigned to the translation memory.
+   * @param name User-defined name assigned to the translation memory.
+   * @param sourceLanguage Source language code for the translation memory.
+   * @param targetLanguages List of target language codes for the translation memory.
+   * @param segmentCount Number of segments in the translation memory.
+   * @param creationTime Timestamp when the translation memory was created, if provided by the API.
+   * @param updatedTime Timestamp when the translation memory was last updated, if provided by the
+   *     API.
+   */
+  public TranslationMemoryInfo(
+      String translationMemoryId,
+      String name,
+      String sourceLanguage,
+      List<String> targetLanguages,
+      int segmentCount,
+      @Nullable Date creationTime,
+      @Nullable Date updatedTime) {
     this.translationMemoryId = translationMemoryId;
     this.name = name;
     this.sourceLanguage = sourceLanguage;
     this.targetLanguages = targetLanguages;
     this.segmentCount = segmentCount;
+    this.creationTime = creationTime;
+    this.updatedTime = updatedTime;
   }
 
   /** @return Unique ID assigned to the translation memory. */
@@ -69,6 +102,22 @@ public class TranslationMemoryInfo {
   /** @return Number of segments in the translation memory. */
   public int getSegmentCount() {
     return segmentCount;
+  }
+
+  /**
+   * @return Timestamp when the translation memory was created, or <code>null</code> if not provided
+   *     by the API.
+   */
+  public @Nullable Date getCreationTime() {
+    return creationTime;
+  }
+
+  /**
+   * @return Timestamp when the translation memory was last updated, or <code>null</code> if not
+   *     provided by the API.
+   */
+  public @Nullable Date getUpdatedTime() {
+    return updatedTime;
   }
 
   @Override

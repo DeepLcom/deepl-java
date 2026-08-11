@@ -52,6 +52,20 @@ public class HttpContent {
     }
   }
 
+  /**
+   * Builds content from the given bytes without any encoding, for example the contents of a file to
+   * upload.
+   */
+  public static HttpContent buildRawContent(String contentType, byte[] content) {
+    if (contentType == null) {
+      throw new IllegalArgumentException("contentType must not be null");
+    }
+    if (content == null) {
+      throw new IllegalArgumentException("content must not be null");
+    }
+    return new HttpContent(contentType, content);
+  }
+
   public static HttpContent buildJsonContent(String jsonBody) {
     if (jsonBody == null) {
       throw new IllegalArgumentException("jsonBody must not be null");

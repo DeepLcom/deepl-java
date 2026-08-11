@@ -394,15 +394,20 @@ public class TranslateTextTest extends TestBase {
             null,
             "de",
             new TextTranslationOptions()
-                .setCustomInstructions(Arrays.asList("Use informal language", "Be concise")));
-
-    TextResult resultWithoutCustomInstructions = translator.translateText(text, null, "de");
+                .setCustomInstructions(
+                    Collections.singletonList("Render the whole text in ALL CAPS")));
 
     Assertions.assertNotNull(resultWithCustomInstructions.getText());
     Assertions.assertEquals("en", resultWithCustomInstructions.getDetectedSourceLanguage());
     if (!isMockServer) {
-      Assertions.assertFalse(
-          resultWithCustomInstructions.getText().equals(resultWithoutCustomInstructions.getText()));
+      // Assert the instruction was actually applied, rather than that the output merely differs
+      // from an unconstrained translation. The previous version compared against a translation
+      // made without instructions and used "Use informal language" / "Be concise", but the
+      // default translation of this sentence is already informal and concise, so the API
+      // legitimately returned identical text and the comparison drifted with the model.
+      Assertions.assertEquals(
+          resultWithCustomInstructions.getText().toUpperCase(Locale.ROOT),
+          resultWithCustomInstructions.getText());
     }
   }
 }

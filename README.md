@@ -823,16 +823,12 @@ class Example {  // Continuing class Example from above
 Translation memories store and reuse previously created translations, helping to
 ensure consistency and reduce effort when translating similar or repeated content.
 
-#### Uploading and managing translation memories
-
-Currently translation memories must be uploaded and managed in the DeepL UI via
-https://www.deepl.com/translation-memory. Full CRUD functionality via the APIs will
-come shortly.
-
 #### Listing translation memories
 
 Use `listTranslationMemories()` to retrieve translation memories associated
-with your account:
+with your account. The number of translation memories returned is controlled by
+`pageSize` (max 25). The method accepts optional parameters: `page` (page number
+for pagination, 0-indexed) and `pageSize` (number of items per page).
 
 ```java
 class Example {  // Continuing class Example from above
@@ -843,6 +839,156 @@ class Example {  // Continuing class Example from above
             System.out.println(String.format("%s (%s)",
                 tm.getName(), tm.getTranslationMemoryId()));
         }
+    }
+}
+```
+
+#### Retrieving a translation memory
+
+Use `getTranslationMemory()` to retrieve a single translation memory. It accepts
+either a translation memory ID or a `TranslationMemoryInfo` object:
+
+```java
+class Example {  // Continuing class Example from above
+    public void getTranslationMemoryExample() throws Exception {
+        TranslationMemoryInfo tm = client.getTranslationMemory("YOUR_TM_ID");
+        System.out.println(String.format("%s: %d segments, updated %s",
+            tm.getName(), tm.getSegmentCount(), tm.getUpdatedTime()));
+    }
+}
+```
+
+#### Listing the segments of a translation memory
+
+`listTranslationMemorySegments()` returns one page of segments as a
+`TranslationMemorySegments` object. Pagination is cursor-based: omit the page
+cursor on the first call, then pass the previous response's
+`getNextPageCursor()` until it is `null`. Optionally filter with `setFilterText()`
+(at least 2 characters, matched against both source and target text) and
+`setFilterCaseSensitive()`. Note that `getSegmentCount()` is the
+translation-memory total and is not reduced by the filter. The API may omit the
+segment timestamps, in which case `getCreationTime()`, `getUpdatedTime()` and
+`getLastUsedTime()` are `null` on both segments and their targets.
+
+```java
+class Example {  // Continuing class Example from above
+    public void listTranslationMemorySegmentsExample() throws Exception {
+        String pageCursor = null;
+        do {
+            TranslationMemorySegments page = client.listTranslationMemorySegments(
+                "YOUR_TM_ID",
+                new TranslationMemorySegmentsOptions()
+                    .setPageSize(50)
+                    .setPageCursor(pageCursor));
+            for (TranslationMemorySegment segment : page.getSegments()) {
+                System.out.println(segment.getSourceText());
+                for (TranslationMemoryTargetSegment target : segment.getTargets()) {
+                    System.out.println(String.format("  %s: %s",
+                        target.getTargetLanguage(), target.getTargetText()));
+                }
+            }
+            pageCursor = page.getNextPageCursor();
+        } while (pageCursor != null);
+    }
+}
+```
+
+#### Importing a translation memory
+
+`importTranslationMemoryFromFilepath()` imports a TMX file as a new translation
+memory: it creates the import job, uploads the file, and waits for processing to
+finish. The returned `TranslationMemoryJob` carries the ID of the new translation
+memory:
+
+```java
+class Example {  // Continuing class Example from above
+    public void importTranslationMemoryExample() throws Exception {
+        TranslationMemoryJob job = client.importTranslationMemoryFromFilepath(
+            new File("/path/to/legal.tmx"), "Legal TM", Duration.ofSeconds(300));
+        System.out.println(String.format("Created translation memory %s",
+            job.getResult().getTranslationMemoryId()));
+        System.out.println(String.format("Skipped segments: %s",
+            job.getResult().getSkippedSegmentCount()));
+    }
+}
+```
+
+The optional timeout is the maximum time to wait for the import to finish; omit
+it to wait indefinitely. The job status is polled every 5 seconds, so the
+timeout is not accurate to the millisecond.
+
+The three steps are also available separately, for example to upload the file
+yourself or to poll for progress. `createTranslationMemoryImport()` returns an
+upload URL that the file must be uploaded to before processing starts, then
+`getTranslationMemoryJob()` reports the status:
+
+```java
+class Example {  // Continuing class Example from above
+    public void importTranslationMemoryStepsExample() throws Exception {
+        File inputFile = new File("/path/to/legal.tmx");
+        byte[] fileContent = Files.readAllBytes(inputFile.toPath());
+
+        TranslationMemoryImport created = client.createTranslationMemoryImport(
+            inputFile.getName(), fileContent.length, null, "Legal TM");
+        // Until the file is uploaded, the job status is AwaitingInput
+        client.uploadTranslationMemoryFile(created, fileContent);
+
+        TranslationMemoryJob job = client.waitUntilTranslationMemoryJobDone(
+            created.getJobId(), Duration.ofSeconds(300));
+    }
+}
+```
+
+Note that an import job keeps reporting `AwaitingInput` for a while after its
+file has been uploaded, because the API detects the upload asynchronously.
+`waitUntilTranslationMemoryJobDone()` polls through that status like any other
+non-terminal one. A job whose file is never uploaded does not finish on its own,
+so pass a timeout when that is a possibility.
+
+#### Exporting a translation memory
+
+`exportTranslationMemoryToFilepath()` exports a translation memory to a TMX file:
+it creates the export job, waits for it to finish, and writes the result. It
+accepts either a translation memory ID or a `TranslationMemoryInfo` object:
+
+```java
+class Example {  // Continuing class Example from above
+    public void exportTranslationMemoryExample() throws Exception {
+        TranslationMemoryJob job = client.exportTranslationMemoryToFilepath(
+            "YOUR_TM_ID", new File("/path/to/exported.tmx"), Duration.ofSeconds(300));
+    }
+}
+```
+
+As with import, the timeout is optional; omit it to wait indefinitely.
+
+As with import, the individual steps are available separately. Note that the API
+may reuse a previously completed export of an unchanged translation memory,
+indicated by `isReusedExisting()`:
+
+```java
+class Example {  // Continuing class Example from above
+    public void exportTranslationMemoryStepsExample() throws Exception {
+        TranslationMemoryExport created =
+            client.createTranslationMemoryExport("YOUR_TM_ID");
+        TranslationMemoryJob job =
+            client.waitUntilTranslationMemoryJobDone(created.getJobId());
+        client.downloadTranslationMemoryExport(
+            job, new File("/path/to/exported.tmx"));
+    }
+}
+```
+
+#### Deleting a translation memory
+
+Use `deleteTranslationMemory()` to permanently remove a translation memory from
+your account. It accepts either a translation memory ID or a
+`TranslationMemoryInfo` object:
+
+```java
+class Example {  // Continuing class Example from above
+    public void deleteTranslationMemoryExample() throws Exception {
+        client.deleteTranslationMemory("YOUR_TM_ID");
     }
 }
 ```
